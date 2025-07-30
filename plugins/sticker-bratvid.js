@@ -2,7 +2,7 @@ import axios from 'axios'
 import { sticker } from '../lib/sticker.js'
 
 const fetchStickerVideo = async (text) => {
-    const response = await axios.get(`https://velyn.mom/api/maker/bratgif`, {
+    const response = await axios.get(`https://bratvid-tuapp.onrender.com/maker/brat-v2?video_url=URL_DEL_VIDEO`, {
         params: { text },
         responseType: 'arraybuffer'
     })
