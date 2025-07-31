@@ -1,13 +1,23 @@
-import axios from 'axios'
 import { sticker } from '../lib/sticker.js'
+import axios from 'axios'
 
-const fetchStickerVideo = async (text) => {
-    const response = await axios.get(`https://bratvid-tuapp.onrender.com/maker/brat-v2?video_url=URL_DEL_VIDEO`, {
-        params: { text },
-        responseType: 'arraybuffer'
-    })
-    if (!response.data) throw new Error('Error al obtener el video de la API.')
-    return response.data
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+
+const fetchSticker = async (text, attempt = 1) => {
+    try {
+        const response = await axios.get(`https://api.nekorinn.my.id/maker/brat-v2`, {
+            params: { text },
+            responseType: 'arraybuffer',
+        })
+        return response.data
+    } catch (error) {
+        if (error.response?.status === 429 && attempt <= 3) {
+            const retryAfter = error.response.headers['retry-after'] || 5
+            await delay(retryAfter * 1000)
+            return fetchSticker(text, attempt + 1)
+        }
+        throw error
+    }
 }
 
 let handler = async (m, { conn, text }) => {
@@ -15,30 +25,33 @@ let handler = async (m, { conn, text }) => {
         text = m.quoted.text
     } else if (!text) {
         return conn.sendMessage(m.chat, {
-            text: '❀ Por favor, responde a un mensaje o ingresa un texto para crear el Sticker.'
+            text: `❀ Por favor, responde a un mensaje o ingresa un texto para crear el Sticker.`,
         }, { quoted: m })
     }
 
-    let userId = m.sender
-    let packstickers = global.db.data.users[userId] || {}
-    let texto1 = packstickers.text1 || global.packsticker
-    let texto2 = packstickers.text2 || global.packsticker2
-
     try {
-        const videoBuffer = await fetchStickerVideo(text)
-        const stickerBuffer = await sticker(videoBuffer, null, texto1, texto2)
-        await conn.sendMessage(m.chat, {
-            sticker: stickerBuffer
-        }, { quoted: m })
-    } catch (e) {
-        await conn.sendMessage(m.chat, {
-            text: `⚠︎ Ocurrió un error: ${e.message}`
+        const buffer = await fetchSticker(text)
+        let userId = m.sender
+        let packstickers = global.db.data.users[userId] || {}
+        let texto1 = packstickers.text1 || global.packsticker
+        let texto2 = packstickers.text2 || global.packsticker2
+
+        let stiker = await sticker(buffer, false, texto1, texto2)
+
+        if (stiker) {
+            return conn.sendFile(m.chat, stiker, 'sticker.webp', '', m)
+        } else {
+            throw new Error("✧ No se pudo generar el sticker.")
+        }
+    } catch (error) {
+        return conn.sendMessage(m.chat, {
+            text: `⚠︎ Ocurrió un error: ${error.message}`,
         }, { quoted: m })
     }
 }
 
-handler.help = ['bratvid <texto>']
+handler.command = ['brat']
 handler.tags = ['sticker']
-handler.command = ['bratvid', 'bratv']
+handler.help = ['brat *<texto>*']
 
 export default handler
