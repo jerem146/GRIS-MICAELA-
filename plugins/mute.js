@@ -7,6 +7,6 @@ const handler = async (m, { conn, args }) => {
   m.reply(`El usuario ${user.name} ha sido muteado con éxito`)
 }
 
-handler.command = ['mute']
+handler.command = ['muteado']
 handler.admin = true
 export default handler
