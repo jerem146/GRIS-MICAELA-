@@ -29,7 +29,7 @@ await conn.sendFile(m.chat, banner, 'estado.jpg', info, m)
 handler.help = ['estado']
 handler.tags = ['info']
 handler.command = ['estado', 'status', 'estate', 'state', 'stado', 'stats']
-handler.register = true
+handler.register = false
 
 export default handler
 
