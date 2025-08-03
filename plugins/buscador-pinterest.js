@@ -26,7 +26,7 @@ No te emociones tanto, baka~ 💅`, m);
       const { imageMessage } = await generateWAMessageContent({ image: { url } }, { upload: conn.waUploadToServer });
       cards.push({
         body: proto.Message.InteractiveMessage.Body.fromObject({ text: `🌺 Imagen ${counter++}` }),
-        footer: proto.Message.InteractiveMessage.Footer.fromObject({ text: "🌟 Encontrado por Nino Bot" }),
+        footer: proto.Message.InteractiveMessage.Footer.fromObject({ text: "🌟 Encontrado por 💖✧ MICA ✧💖" }),
         header: proto.Message.InteractiveMessage.Header.fromObject({ title: '', hasMediaAttachment: true, imageMessage }),
         nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.fromObject({
           buttons: [{
