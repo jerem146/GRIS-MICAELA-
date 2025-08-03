@@ -47,7 +47,7 @@ No te emociones tanto, baka~ 💅`, m);
           messageContextInfo: { deviceListMetadata: {}, deviceListMetadataVersion: 2 },
           interactiveMessage: proto.Message.InteractiveMessage.fromObject({
             body: proto.Message.InteractiveMessage.Body.create({ text: `📎 *Resultado de búsqueda para:* ${query}` }),
-            footer: proto.Message.InteractiveMessage.Footer.create({ text: "🖼️ 𝙄𝙢𝙖𝙜𝙚𝙣𝙚𝙨 𝙘𝙤𝙣 𝙖𝙢𝙤𝙧 💖 𝙙𝙚 Nino-Nakano-Bot" }),
+            footer: proto.Message.InteractiveMessage.Footer.create({ text: "🖼️ 𝙄𝙢𝙖𝙜𝙚𝙣𝙚𝙨 𝙘𝙤𝙣 𝙖𝙢𝙤𝙧 💖 𝙙𝙚 💖✧ MICA ✧💖" }),
             header: proto.Message.InteractiveMessage.Header.create({ hasMediaAttachment: false }),
             carouselMessage: proto.Message.InteractiveMessage.CarouselMessage.fromObject({ cards })
           })
