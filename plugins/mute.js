@@ -1,4 +1,6 @@
 const handlerMute = async (m, { conn, args }) => {
+  if (!m.isGroup) return
+  if (!m.isAdmin) return m.reply('Solo los administradores pueden ejecutar este comando')
   const userId = m.mentionedJid[0] || args[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net'
   if (!userId) return m.reply('Debes mencionar a un usuario o proporcionar su número de teléfono')
   let user = global.db.data.users[userId]
@@ -9,13 +11,16 @@ const handlerMute = async (m, { conn, args }) => {
     }
   }
   user.muto = true
-  m.reply(`El usuario ${userId} ha sido muteado con éxito`)
+  const userName = await conn.getName(userId)
+  m.reply(`El usuario ${userName} ha sido muteado con éxito`)
 }
 
 handlerMute.command = ['muteado']
 handlerMute.admin = true
 
 const handlerUnmute = async (m, { conn, args }) => {
+  if (!m.isGroup) return
+  if (!m.isAdmin) return m.reply('Solo los administradores pueden ejecutar este comando')
   const userId = m.mentionedJid[0] || args[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net'
   if (!userId) return m.reply('Debes mencionar a un usuario o proporcionar su número de teléfono')
   let user = global.db.data.users[userId]
@@ -26,10 +31,11 @@ const handlerUnmute = async (m, { conn, args }) => {
     }
   }
   user.muto = false
-  m.reply(`El usuario ${userId} ha sido desmuteado con éxito`)
+  const userName = await conn.getName(userId)
+  m.reply(`El usuario ${userName} ha sido desmuteado con éxito`)
 }
 
-handlerUnmute.command = ['desmuto']
+handlerUnmute.command = ['desmuteado']
 handlerUnmute.admin = true
 
 export { handlerMute, handlerUnmute }
