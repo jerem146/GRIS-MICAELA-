@@ -23,6 +23,6 @@ conn.sendMessage(m.chat, {audio: media || audio.data, mimetype: 'audio/mpeg'}, {
 handler.help = ['tomp3', 'toaudio']
 handler.command = ['tomp3', 'toaudio']
 handler.group = true
-handler.register = true
+handler.register = false
 
 export default handler
