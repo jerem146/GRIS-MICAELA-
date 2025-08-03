@@ -93,23 +93,11 @@ let handler = async (m, { conn, args, command, usedPrefix }) => {
 
     // Mensaje informativo con tarjeta
     const details = `
-✧─── ･ ｡ﾟ★: .✦ . :★. ───✧
-⧼ ᰔᩚ ⧽  M U S I C  -  Y O U T U B E
-
-» ✧ « ${title}
-
-> ➩ Canal › ${canal}
-➩ Duración › ${duration}
-➩ Vistas › ${vistas}
-➩ Publicado › ${publicado}
-➩ Link › ${url}
-
-
-
-${isAudio
-? '> ✰ Descargando audio... ✧'
-: '> ✰ Descargando video (ytmp4)... ✧'}
-
+📌 Título : *${title}*
+📁 Duración : *${duration}*
+📥 Calidad : *${quality}*
+🎧 Tipo : *${tipo}*
+🌐 Fuente : *YouTube*
 
     `.trim()
 
