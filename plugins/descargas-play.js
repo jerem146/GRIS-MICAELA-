@@ -1,195 +1,109 @@
-import fetch from "node-fetch";
-import yts from "yt-search";
+// creado por Ado.
 
-const ytIdRegex = /(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+import fetch from 'node-fetch'
+import yts from 'yt-search'
+import fs from 'fs'
+import path from 'path'
 
-const toSansSerifPlain = (text = "") =>
-  text
-    .split("")
-    .map((char) => {
-      const map = {
-        a: "𝖺", b: "𝖻", c: "𝖼", d: "𝖽", e: "𝖾", f: "𝖿", g: "𝗀", h: "𝗁", i: "𝗂",
-        j: "𝗃", k: "𝗄", l: "𝗅", m: "𝗆", n: "𝗇", o: "𝗈", p: "𝗉", q: "𝗊", r: "𝗋",
-        s: "𝗌", t: "𝗍", u: "𝗎", v: "𝗏", w: "𝗐", x: "𝗑", y: "𝗒", z: "𝗓",
-        A: "𝖠", B: "𝖡", C: "𝖢", D: "𝖣", E: "𝖤", F: "𝖥", G: "𝖦", H: "𝖧", I: "𝖨",
-        J: "𝖩", K: "𝖪", L: "𝖫", M: "𝖬", N: "𝖭", O: "𝖮", P: "𝖯", Q: "𝖰", R: "𝖱",
-        S: "𝖲", T: "𝖳", U: "𝖴", V: "𝖵", W: "𝖶", X: "𝖷", Y: "𝖸", Z: "𝖹",
-        0: "𝟢", 1: "𝟣", 2: "𝟤", 3: "𝟥", 4: "𝟦", 5: "𝟧", 6: "𝟨", 7: "𝟩", 8: "𝟪", 9: "𝟫"
-      };
-      return map[char] || char;
-    })
-    .join("");
+let handler = async (m, { conn, args, command, usedPrefix }) => {
+  if (!args[0]) return m.reply(`✅ Uso correcto: ${usedPrefix + command} <enlace o nombre>`)
 
-// Formatea vistas grandes
-const formatViews = (views) => {
-  if (views == null) return "Desconocido";
-  if (typeof views !== "number") return views.toString();
-  if (views >= 1_000_000_000) return `${(views / 1_000_000_000).toFixed(1)}B`;
-  if (views >= 1_000_000) return `${(views / 1_000_000).toFixed(1)}M`;
-  if (views >= 1_000) return `${(views / 1_000).toFixed(1)}k`;
-  return views.toString();
-};
-
-// Sanitiza nombre de archivo
-const sanitizeFileName = (name = "") => name.replace(/[<>:"/\\|?*\x00-\x1F]/g, "").slice(0, 50);
-
-// Envío seguro
-const safeSend = async (conn, chat, message, opts = {}) => {
   try {
-    await conn.sendMessage(chat, message, opts);
-  } catch (e) {
-    console.warn("sendMessage error:", e?.message || e);
-  }
-};
+    const botActual = conn.user?.jid?.split('@')[0].replace(/\D/g, '')
+    const configPath = path.join('./JadiBots', botActual, 'config.json')
 
-const handler = async (m, { conn, text = "", command }) => {
-  const query = text.trim();
-  if (!query) return m.reply(toSansSerifPlain("✦ Ingresa el nombre o link de un video."));
-
-  // Reacción de espera
-  await safeSend(conn, m.chat, { react: { text: "🕐", key: m.key } });
-
-  // Buscar video en YouTube
-  let video;
-  try {
-    const ytIdMatch = ytIdRegex.exec(query);
-    const search = ytIdMatch ? await yts({ videoId: ytIdMatch[1] }) : await yts(query);
-    video = ytIdMatch
-      ? search.video
-      : Array.isArray(search.all)
-      ? search.all[0]
-      : search.video;
-  } catch (err) {
-    console.error("Error en búsqueda:", err);
-    return m.reply(toSansSerifPlain("✦ Error al buscar el video."));
-  }
-
-  if (!video) return m.reply(toSansSerifPlain("✦ No se encontró el video."));
-
-  // Desestructurar con valores por defecto
-  const {
-    title = "Sin título",
-    timestamp = "Desconocido",
-    views = null,
-    url = "",
-    thumbnail = "",
-    author = { name: "Desconocido" },
-    ago = "Desconocido"
-  } = video;
-
-  const cleanTitle = sanitizeFileName(title);
-  const vistas = formatViews(typeof views === "number" ? views : null);
-  const canal = author?.name || "Desconocido";
-
-  // Caption informativo
-  const captionInfo = [
-    "✧─── ･ ｡ﾟ★: *.✦ .* :★. ───✧",
-    "⧼ ᰔᩚ ⧽  M U S I C  -  Y O U T U B E",
-    "",
-    `» ✧ « *${title}*`,
-    `> ➩ Canal › *${canal}*`,
-    `> ➩ Duración › *${timestamp}*`,
-    `> ➩ Vistas › *${vistas}*`,
-    `> ➩ Publicado › *${ago || "desconocido"}*`,
-    `> ➩ Link › *${url}*`,
-    "",
-    command.toLowerCase().includes("mp4")
-      ? "> ✰ Descargando video (ytmp4)... ✧"
-      : "> ✰ Descargando audio... ✧"
-  ].join("\n");
-
-  // Enviar la info primero
-  await safeSend(
-    conn,
-    m.chat,
-    {
-      image: { url: thumbnail },
-      caption: captionInfo
-    },
-    { quoted: m }
-  );
-
-  const lower = command.toLowerCase();
-
-  // Ramas de audio vs video
-  if (["play", "ytmp3", "playaudio", "yta"].includes(lower)) {
-    // Audio vía API de ytmp3
-    try {
-      const audioApi = `https://api.vreden.my.id/api/ytmp3?url=${encodeURIComponent(url)}`;
-      const resp = await fetch(audioApi, { timeout: 30000 });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const json = await resp.json();
-
-      // Ajusta según la estructura real: intento estándar
-      const audioUrl =
-        json?.result?.download?.url ||
-        json?.url ||
-        json?.result?.url ||
-        (json?.result && typeof json.result === "string" ? json.result : null);
-      const audioTitle = json?.result?.title || title;
-
-      if (!audioUrl) throw new Error("No se obtuvo URL de audio.");
-
-      await safeSend(
-        conn,
-        m.chat,
-        {
-          audio: { url: audioUrl },
-          mimetype: "audio/mpeg",
-          fileName: `${sanitizeFileName(audioTitle)}.mp3`
-        },
-        { quoted: m }
-      );
-    } catch (e) {
-      console.error("Error descargando audio:", e);
-      return m.reply(
-        m.chat,
-        toSansSerifPlain("⚠︎ No se pudo descargar el audio. Intenta más tarde."),
-        m
-      );
+    let nombreBot = global.namebot || '⎯⎯⎯⎯⎯⎯ Bot Principal ⎯⎯⎯⎯⎯⎯'
+    if (fs.existsSync(configPath)) {
+      try {
+        const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'))
+        if (config.name) nombreBot = config.name
+      } catch {}
     }
-  } else if (["ytmp4", "ytv", "mp4"].includes(lower)) {
-    // Video vía endpoint de ytmp4
-    try {
-      const videoApi = `https://myapiadonix.vercel.app/api/ytmp4?url=${encodeURIComponent(url)}`;
-      const resp = await fetch(videoApi, { timeout: 30000 });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const json = await resp.json();
 
-      // Ajusta según la respuesta real
-      const videoUrl =
-        json?.result?.download?.url ||
-        json?.url ||
-        json?.result?.url ||
-        (json?.result && typeof json.result === "string" ? json.result : null);
-      const videoTitle = json?.result?.title || title;
+    let url = args[0]
+    let videoInfo = null
 
-      if (!videoUrl) throw new Error("No se obtuvo URL de video.");
-
-      await conn.sendMessage(
-        m.chat,
-        {
-          video: { url: videoUrl },
-          caption: `✧ Aquí tienes: *${videoTitle}* (ytmp4)`
-        },
-        { quoted: m }
-      );
-    } catch (e) {
-      console.error("Error descargando video:", e);
-      return m.reply(
-        m.chat,
-        toSansSerifPlain("⚠︎ No se pudo descargar el video. Intenta más tarde."),
-        m
-      );
+    if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
+      let search = await yts(args.join(' '))
+      if (!search.videos || search.videos.length === 0) return m.reply('No se encontraron resultados.')
+      videoInfo = search.videos[0]
+      url = videoInfo.url
+    } else {
+      let id = url.split('v=')[1]?.split('&')[0] || url.split('/').pop()
+      let search = await yts({ videoId: id })
+      if (search && search.title) videoInfo = search
     }
-  } else {
-    return m.reply(
-      toSansSerifPlain("✦ Usa `play`/`ytmp3` para audio o `ytmp4`/`mp4` para video."),
-      m
-    );
-  }
-};
 
-handler.command = ["play", "ytmp3", "playaudio", "yta", "ytmp4", "ytv", "mp4"];
-handler.register = true;
-export default handler;
+    if (videoInfo.seconds > 3780) {
+      return m.reply(`⛔ El video supera el límite de duración permitido (63 minutos).`)
+    }
+
+    let apiUrl = ''
+    let isAudio = false
+
+    if (command == 'play' || command == 'ytmp3') {
+      apiUrl = `https://myapiadonix.vercel.app/api/ytmp3?url=${encodeURIComponent(url)}`
+      isAudio = true
+    } else if (command == 'play2' || command == 'ytmp4') {
+      apiUrl = `https://myapiadonix.vercel.app/api/ytmp4?url=${encodeURIComponent(url)}`
+    } else {
+      return m.reply('Comando no reconocido.')
+    }
+
+    let res = await fetch(apiUrl)
+    if (!res.ok) throw new Error('Error al conectar con la API.')
+    let json = await res.json()
+    if (!json.success) throw new Error('No se pudo obtener información del video.')
+
+    let { title, thumbnail, quality, download } = json.data
+    let duration = videoInfo?.timestamp || 'Desconocida'
+
+    let details = `
+📌 Título : *${title}*
+📁 Duración : *${duration}*
+📥 Calidad : *${quality}*
+🎧 Tipo : *${isAudio ? 'Audio' : 'Video'}*
+🌐 Fuente : *YouTube*`.trim()
+
+    await conn.sendMessage(m.chat, {
+      text: details,
+      contextInfo: {
+        externalAdReply: {
+          title: nombreBot,
+          body: 'Procesando...',
+          thumbnailUrl: thumbnail,
+          sourceUrl: 'https://whatsapp.com/channel/0029VbArz9fAO7RGy2915k3O',
+          mediaType: 1,
+          renderLargerThumbnail: true
+        }
+      }
+    }, { quoted: m })
+
+    if (isAudio) {
+      await conn.sendMessage(m.chat, {
+        audio: { url: download },
+        mimetype: 'audio/mpeg',
+        fileName: `${title}.mp3`,
+        ptt: false
+      }, { quoted: m })
+    } else {
+      await conn.sendMessage(m.chat, {
+        video: { url: download },
+        mimetype: 'video/mp4',
+        fileName: `${title}.mp4`
+      }, { quoted: m })
+    }
+
+  } catch {
+    m.reply('❌ Se produjo un error al procesar la solicitud.')
+  }
+}
+
+handler.help = ['play', 'ytmp3', 'play2', 'ytmp4']
+handler.tags = ['downloader']
+handler.command = ['play', 'play2', 'ytmp3', 'ytmp4']
+
+export default handler
+
+  
+  
