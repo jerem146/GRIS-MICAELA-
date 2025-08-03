@@ -12,8 +12,8 @@ conn.sendMessage(m.chat, { react: { text: "🕒", key: m.key } });
 handler.help = ['mediafire']
 handler.tags = ['descargas']
 handler.command = ['mf', 'mediafire']
-handler.coin = 10
-handler.register = true
+handler.coin = 0
+handler.register = false
 handler.group = true
 
 export default handler
