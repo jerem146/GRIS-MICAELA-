@@ -5,16 +5,16 @@ export async function before(m, { conn, participants, groupMetadata }) {
   if (!m.messageStubType || !m.isGroup) return true
 
   const chat = global.db.data.chats[m.chat]
-  if (!chat?.welcome) return true
+  if (!chat.welcome) return true
 
   const who = m.messageStubParameters?.[0]
   if (!who) return true
 
   const taguser = `@${who.split('@')[0]}`
-  const totalMembers = participants?.length || 0
+  const totalMembers = participants.length
   const defaultImage = 'https://files.catbox.moe/xr2m6u.jpg'
-  const welcomeMessage = chat.welcomeMessage || global.welcom1 || ''
-  const despMessage = chat.despMessage || global.welcom2 || ''
+  const welcomeMessage = chat.welcomeMessage || global.welcom1 || 'Bienvenido/a :'
+  const despMessage = chat.despMessage || global.welcom2 || 'Se fue 😿'
 
   const fkontak = {
     key: {
@@ -39,44 +39,34 @@ export async function before(m, { conn, participants, groupMetadata }) {
     img = await (await fetch(defaultImage)).buffer()
   }
 
-  const firma = "© ⍴᥆ᥕᥱrᥱძ ᑲᥡ ᗪ卂尺Ҝ"
-
   if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_ADD) {
-    const header = '↷✦; w e l c o m e ❞'
-    const bienvenida = [
-      `✿ *Bienvenid@* a *${groupMetadata.subject}*`,
-      `✰ ${taguser}, qué gusto :D`,
-      `✦ Ahora somos *${totalMembers}*`,
-      ``,
-      `${welcomeMessage}`.trim(),
-      ``,
-      `•(=^●ω●^=)• Disfruta tu estadía en el grupo!`,
-      `> ✐ Puedes usar *#profile* para ver tu perfil.`,
-      ``,
-      `${firma}`
-    ].join("\n")
+    const txt = 'ゲ◜៹ NUEVO MIEMBRO ៹◞ゲ'
+    const bienvenida = `┏╼★${textbot}
+┋「 Bienvenido 」
+┗╼★ 「 ${taguser} 」
+ ┋❖ ${welcomeMessage}
+ ┋❀ Grupo: ${groupMetadata.subject}
+ ┋❀ Miembros: ${totalMembers}
+ ┗━━━━━━━━━━━━━━━┅ ⳹
+> ✐ Puedes usar *#profile* para ver tu perfil.`
 
-    await conn.sendMini(m.chat, header, dev, bienvenida, img, img, redes, fkontak)
+    await conn.sendMini(m.chat, txt, dev, bienvenida, img, img, redes, fkontak)
 
   } else if (
     m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE ||
     m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_LEAVE
   ) {
-    const header = '↷✦; g o o d b y e ❞'
-    const bye = [
-      `✿ *Adiós* de *${groupMetadata.subject}*`,
-      `✰ ${taguser}`,
-      `✦ Ahora somos *${totalMembers}*`,
-      ``,
-      `${despMessage}`.trim(),
-      ``,
-      `•(=^●ω●^=)• Te esperamos pronto!`,
-      `> ✐ Puedes usar *#profile* para ver tu perfil.`,
-      ``,
-      `${firma}`
-    ].join("\n")
+    const txt1 = 'ゲ◜៹ BYE MIEMBRO ៹◞ゲ'
+    const bye = `┏╼★${textbot}
+┋「 ADIÓS 👋 」
+┗╼★ 「 ${taguser} 」
+ ┋❖ ${despMessage}
+ ┋❀ Grupo: ${groupMetadata.subject}
+ ┋❀ Miembros: ${totalMembers}
+ ┗━━━━━━━━━━━━━━━┅ ⳹
+> > ${global.dev}`
 
-    await conn.sendMini(m.chat, header, dev, bye, img, img, redes, fkontak)
+    await conn.sendMini(m.chat, txt1, dev, bye, img, img, redes, fkontak)
   }
 
   return true
