@@ -39,7 +39,7 @@ await conn.sendFile(m.chat, img, 'yuki.jpg', staff.trim(), m)
   
 handler.help = ['staff']
 handler.command = ['colaboradores', 'staff']
-handler.register = true
+handler.register = false
 handler.tags = ['main']
 
 export default handler
