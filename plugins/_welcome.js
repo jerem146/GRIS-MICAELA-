@@ -2,26 +2,82 @@ import { WAMessageStubType } from '@whiskeysockets/baileys'
 import fetch from 'node-fetch'
 
 export async function before(m, { conn, participants, groupMetadata }) {
-  if (!m.messageStubType || !m.isGroup) return !0;
-  const fkontak = { "key": { "participants":"0@s.whatsapp.net", "remoteJid": "status@broadcast", "fromMe": false, "id": "Halo" }, "message": { "contactMessage": { "vcard": `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:y\nitem1.TEL;waid=${m.sender.split('@')[0]}:${m.sender.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD` }}, "participant": "0@s.whatsapp.net"}  
-  let pp = await conn.profilePictureUrl(m.messageStubParameters[0], 'image').catch(_ => 'https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1745522645448.jpeg')
-  let img = await (await fetch(`${pp}`)).buffer()
-  let chat = global.db.data.chats[m.chat]
-  let txt = 'ゲ◜៹ New Member ៹◞ゲ'
-  let txt1 = 'ゲ◜៹ Bye Member ៹◞ゲ'
-  let groupSize = participants.length
-  if (m.messageStubType == 27) {
-    groupSize++;
-  } else if (m.messageStubType == 28 || m.messageStubType == 32) {
-    groupSize--;
+  if (!m.messageStubType || !m.isGroup) return true
+
+  const chat = global.db.data.chats[m.chat]
+  if (!chat?.welcome) return true
+
+  const who = m.messageStubParameters?.[0]
+  if (!who) return true
+
+  const taguser = `@${who.split('@')[0]}`
+  const totalMembers = participants?.length || 0
+  const defaultImage = 'https://files.catbox.moe/xr2m6u.jpg'
+  const welcomeMessage = chat.welcomeMessage || global.welcom1 || ''
+  const despMessage = chat.despMessage || global.welcom2 || ''
+
+  const fkontak = {
+    key: {
+      participants: "0@s.whatsapp.net",
+      remoteJid: "status@broadcast",
+      fromMe: false,
+      id: "Halo"
+    },
+    message: {
+      contactMessage: {
+        vcard: `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:y\nitem1.TEL;waid=${m.sender.split('@')[0]}:${m.sender.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD`
+      }
+    },
+    participant: "0@s.whatsapp.net"
   }
 
-  if (chat.welcome && m.messageStubType == 27) {
-    let bienvenida = `❀ *Bienvenido* a ${groupMetadata.subject}\n✰ @${m.messageStubParameters[0].split`@`[0]}\n${global.welcom1}\n✦ Ahora somos ${groupSize} Miembros.\n•(=^●ω●^=)• Disfruta tu estadía en el grupo!\n> ✐ Puedes usar *#help* para ver la lista de comandos.`    
-    await conn.sendMini(m.chat, txt, dev, bienvenida, img, img, redes, fkontak)
+  let img
+  try {
+    const pp = await conn.profilePictureUrl(who, 'image')
+    img = await (await fetch(pp)).buffer()
+  } catch {
+    img = await (await fetch(defaultImage)).buffer()
   }
-  
-  if (chat.welcome && (m.messageStubType == 28 || m.messageStubType == 32)) {
-    let bye = `❀ *Adiós* de ${groupMetadata.subject}\n✰ @${m.messageStubParameters[0].split`@`[0]}\n${global.welcom2}\n✦ Ahora somos ${groupSize} Miembros.\n•(=^●ω●^=)• Te esperamos pronto!\n> ✐ Puedes usar *#help* para ver la lista de comandos.`
-    await conn.sendMini(m.chat, txt1, dev, bye, img, img, redes, fkontak)
-  }}
+
+  const firma = "© ⍴᥆ᥕᥱrᥱძ ᑲᥡ ᗪ卂尺Ҝ"
+
+  if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_ADD) {
+    const header = '↷✦; w e l c o m e ❞'
+    const bienvenida = [
+      `✿ *Bienvenid@* a *${groupMetadata.subject}*`,
+      `✰ ${taguser}, qué gusto :D`,
+      `✦ Ahora somos *${totalMembers}*`,
+      ``,
+      `${welcomeMessage}`.trim(),
+      ``,
+      `•(=^●ω●^=)• Disfruta tu estadía en el grupo!`,
+      `> ✐ Puedes usar *#profile* para ver tu perfil.`,
+      ``,
+      `${firma}`
+    ].join("\n")
+
+    await conn.sendMini(m.chat, header, dev, bienvenida, img, img, redes, fkontak)
+
+  } else if (
+    m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE ||
+    m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_LEAVE
+  ) {
+    const header = '↷✦; g o o d b y e ❞'
+    const bye = [
+      `✿ *Adiós* de *${groupMetadata.subject}*`,
+      `✰ ${taguser}`,
+      `✦ Ahora somos *${totalMembers}*`,
+      ``,
+      `${despMessage}`.trim(),
+      ``,
+      `•(=^●ω●^=)• Te esperamos pronto!`,
+      `> ✐ Puedes usar *#profile* para ver tu perfil.`,
+      ``,
+      `${firma}`
+    ].join("\n")
+
+    await conn.sendMini(m.chat, header, dev, bye, img, img, redes, fkontak)
+  }
+
+  return true
+}
