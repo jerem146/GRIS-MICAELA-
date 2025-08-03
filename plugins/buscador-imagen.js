@@ -75,6 +75,6 @@ sourceUrl: redes }}})
 handler.help = ['imagen <query>'];
 handler.tags = ['buscador', 'tools', 'descargas'];
 handler.command = ['imagen', 'image', 'img'];
-handler.register = true;
+handler.register = false;
 
 export default handler;
