@@ -12,7 +12,7 @@ const handlerMute = async (m, { conn, args }) => {
   m.reply(`El usuario ${userId} ha sido muteado con éxito`)
 }
 
-handlerMute.command = ['mute']
+handlerMute.command = ['mut']
 handlerMute.admin = true
 
 const handlerUnmute = async (m, { conn, args }) => {
@@ -29,7 +29,7 @@ const handlerUnmute = async (m, { conn, args }) => {
   m.reply(`El usuario ${userId} ha sido desmuteado con éxito`)
 }
 
-handlerUnmute.command = ['unmute']
+handlerUnmute.command = ['unmut']
 handlerUnmute.admin = true
 
 export { handlerMute, handlerUnmute }
