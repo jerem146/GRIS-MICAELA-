@@ -1,17 +1,21 @@
 let handler = async (m, { conn, command, text, participants }) => {
   const emoji = '✅'
   const emoji2 = '⚠️'
-
-  let user = null
   const cmd = command.toLowerCase()
 
-  const extractUserFromText = (txt) => {
-    const cleaned = txt.replace(/\D/g, '')
-    if (!cleaned) return null
-    return `${cleaned}@s.whatsapp.net`
+  // Extrae y normaliza JID desde texto tipo "51963896243" -> "51963896243@s.whatsapp.net"
+  const jidFromText = (txt) => {
+    const digits = txt.replace(/\D/g, '')
+    if (!digits) return null
+    return `${digits}@s.whatsapp.net`
   }
 
-  // Helper para enviar invitación si no se puede agregar directamente
+  // Extrae número limpio para mostrar en @mención (sin @s.whatsapp.net)
+  const cleanNumber = (jid) => {
+    return jid.replace(/\D/g, '').replace(/swhatsappnet$/i, '') // queda por si hay sufijos raros
+  }
+
+  // Enviar invitación por link como fallback
   const enviarInvitacion = async (target) => {
     try {
       const code = await conn.groupInviteCode(m.chat)
@@ -20,7 +24,7 @@ let handler = async (m, { conn, command, text, participants }) => {
         text: `📩 *Has sido invitado al grupo por @${m.sender.split('@')[0]}:*\n${inviteLink}\n\n(｡•́‿•̀｡) ¡Te esperamos!`
       }, { mentions: [m.sender] })
 
-      m.reply(`${emoji} *Invitación enviada a @${target.split('@')[0]}*`, null, {
+      m.reply(`${emoji} *Invitación enviada a @${cleanNumber(target)}*`, null, {
         mentions: [target]
       })
     } catch (err) {
@@ -29,6 +33,7 @@ let handler = async (m, { conn, command, text, participants }) => {
     }
   }
 
+  let user = null
   if (['add', 'agregar', 'añadir'].includes(cmd)) {
     if (m.quoted) {
       user = m.quoted.sender
@@ -37,13 +42,14 @@ let handler = async (m, { conn, command, text, participants }) => {
         return conn.reply(m.chat, `${emoji2} *Ingrese el número sin "+" ni espacios.*`, m)
       if (isNaN(text.replace(/\D/g, '')))
         return conn.reply(m.chat, `${emoji2} *Ingrese solo números.*`, m)
-      user = extractUserFromText(text)
+      user = jidFromText(text)
       if (!user)
         return conn.reply(m.chat, `${emoji2} *Número inválido.*`, m)
     } else {
       return conn.reply(m.chat, `${emoji2} *Responda el mensaje o escriba un número para agregar.*`, m)
     }
 
+    // Verificar si ya está en el grupo
     const isInGroup = Array.isArray(participants) && participants.some(p => p.id === user)
     if (isInGroup) return m.reply(`${emoji2} *El usuario ya está en el grupo.*`)
 
@@ -52,7 +58,7 @@ let handler = async (m, { conn, command, text, participants }) => {
       m.reply(`${emoji} *Usuario agregado correctamente.*`)
     } catch (e) {
       console.error('Error agregando directamente:', e)
-      // Fallback: enviar invitación si no se pudo agregar (p. ej. fue eliminado o tiene privacidad)
+      m.reply(`${emoji2} *No se pudo agregar directamente. Enviando enlace de invitación...*`)
       await enviarInvitacion(user)
     }
     return
@@ -66,19 +72,14 @@ let handler = async (m, { conn, command, text, participants }) => {
         return conn.reply(m.chat, `${emoji2} *Ingrese el número sin "+" ni espacios.*`, m)
       if (isNaN(text.replace(/\D/g, '')))
         return conn.reply(m.chat, `${emoji2} *Ingrese solo números.*`, m)
-      user = extractUserFromText(text)
+      user = jidFromText(text)
       if (!user)
         return conn.reply(m.chat, `${emoji2} *Número inválido.*`, m)
     } else {
       return conn.reply(m.chat, `${emoji2} *Responda el mensaje o escriba un número para invitar.*`, m)
     }
 
-    try {
-      await enviarInvitacion(user)
-    } catch (e) {
-      console.error('Error en invitar:', e)
-      m.reply(`${emoji2} *No se pudo enviar la invitación.*`)
-    }
+    await enviarInvitacion(user)
     return
   }
 }
