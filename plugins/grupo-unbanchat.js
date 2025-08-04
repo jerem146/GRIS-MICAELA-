@@ -1,32 +1,42 @@
 let handler = async (m, { conn, usedPrefix, command, args }) => {
-let chat = global.db.data.chats[m.chat]
-if (!(m.chat in global.db.data.chats)) {
-return conn.reply(m.chat, `✧ ¡Este chat no está registrado!.`, m)
-}
-if (command === 'bot') {
-if (args.length === 0) {
-const estado = chat.isBanned ? '✗ Desactivado' : '✓ Activado'
-const info = `「✦」Un administrador puede activar o desactivar a *${botname}* utilizando:\n\n> ✐ *${usedPrefix}bot on* para activar\n> ✐ *${usedPrefix}bot off* para desactivar\n\n✧ Estado actual » *${estado}*`
-return conn.reply(m.chat, info, m)
-}
-if (args[0] === 'off') {
-if (chat.isBanned) {
-return conn.reply(m.chat, `《✦》${botname} ya estaba desactivado.`, m)
-}
-chat.isBanned = true
-return conn.reply(m.chat, `❀ Has *desactivado* a ${botname}!`, m)
-} else if (args[0] === 'on') {
-if (!chat.isBanned) {
-return conn.reply(m.chat, `《✦》${botname} ya estaba activado.`, m)
-}
-chat.isBanned = false
-return conn.reply(m.chat, `❀ Has *activado* a ${botname}!`, m)
-}}
+  const chat = global.db.data.chats[m.chat]
+
+  // Si el chat no está registrado
+  if (!chat) {
+    return conn.reply(m.chat, `✧ Este chat aún no está registrado en la base de datos.`, m)
+  }
+
+  if (command === 'bot') {
+    const estado = chat.isBanned ? 'desactivado 🔴' : 'en línea 🟢'
+
+    // Si no se proporciona argumento, mostrar estado actual
+    if (!args[0]) {
+      return conn.reply(m.chat, `✧ Estoy *${estado}* en este grupo.`, m)
+    }
+
+    // Convertir argumento a minúsculas
+    const option = args[0].toLowerCase()
+
+    if (option === 'off') {
+      if (chat.isBanned) return conn.reply(m.chat, `《✦》${botname} ya estaba desactivado.`, m)
+      chat.isBanned = true
+      return conn.reply(m.chat, `❀ Has *desactivado* a ${botname}.`, m)
+    }
+
+    if (option === 'on') {
+      if (!chat.isBanned) return conn.reply(m.chat, `《✦》${botname} ya estaba activado.`, m)
+      chat.isBanned = false
+      return conn.reply(m.chat, `❀ Has *activado* a ${botname}.`, m)
+    }
+
+    return conn.reply(m.chat, `✧ Opción no válida. Usa *${usedPrefix}bot on* o *${usedPrefix}bot off*.`, m)
+  }
 }
 
 handler.help = ['bot']
 handler.tags = ['grupo']
 handler.command = ['bot']
 handler.admin = true
+handler.group = true
 
 export default handler
