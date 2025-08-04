@@ -7,7 +7,7 @@ m.react(emoji2)
 handler.help = ['meme']
 handler.tags = ['fun']
 handler.command = ['meme', 'memes']
-handler.coin = 1
+handler.coin = 0
 handler.group = true;
 handler.register = false
 
