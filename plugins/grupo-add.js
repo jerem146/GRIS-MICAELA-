@@ -3,16 +3,22 @@ let handler = async (m, { conn, command, text, participants }) => {
   const emoji2 = '⚠️'
   const cmd = command.toLowerCase()
 
-  // Extrae y normaliza JID desde texto tipo "51963896243" -> "51963896243@s.whatsapp.net"
-  const jidFromText = (txt) => {
-    const digits = txt.replace(/\D/g, '')
+  // Normaliza JID desde texto tipo "51963896243" -> "51963896243@s.whatsapp.net"
+  const jidFromText = txt => {
+    const digits = String(txt).replace(/\D/g, '')
     if (!digits) return null
     return `${digits}@s.whatsapp.net`
   }
 
-  // Extrae número limpio para mostrar en @mención (sin @s.whatsapp.net)
-  const cleanNumber = (jid) => {
-    return jid.replace(/\D/g, '').replace(/swhatsappnet$/i, '') // queda por si hay sufijos raros
+  // Número limpio para mostrar en @mención
+  const cleanNumber = jid => {
+    return String(jid).replace(/@s\.whatsapp\.net$/i, '').replace(/\D/g, '')
+  }
+
+  // Extrae JID del mensaje citado de forma segura
+  const jidFromQuoted = (quoted) => {
+    if (!quoted) return null
+    return quoted.sender || quoted.key?.participant || quoted.key?.remoteJid || null
   }
 
   // Enviar invitación por link como fallback
@@ -21,7 +27,7 @@ let handler = async (m, { conn, command, text, participants }) => {
       const code = await conn.groupInviteCode(m.chat)
       const inviteLink = 'https://chat.whatsapp.com/' + code
       await conn.sendMessage(target, {
-        text: `📩 *Has sido invitado al grupo por @${m.sender.split('@')[0]}:*\n${inviteLink}\n\n(｡•́‿•̀｡) ¡Te esperamos!`
+        text: `📩 *Has sido invitado al grupo por @${cleanNumber(m.sender)}:*\n${inviteLink}\n\n(｡•́‿•̀｡) ¡Te esperamos!`
       }, { mentions: [m.sender] })
 
       m.reply(`${emoji} *Invitación enviada a @${cleanNumber(target)}*`, null, {
@@ -34,9 +40,10 @@ let handler = async (m, { conn, command, text, participants }) => {
   }
 
   let user = null
+
   if (['add', 'agregar', 'añadir'].includes(cmd)) {
     if (m.quoted) {
-      user = m.quoted.sender
+      user = jidFromQuoted(m.quoted)
     } else if (text) {
       if (text.includes('+') || /\s/.test(text))
         return conn.reply(m.chat, `${emoji2} *Ingrese el número sin "+" ni espacios.*`, m)
@@ -49,7 +56,13 @@ let handler = async (m, { conn, command, text, participants }) => {
       return conn.reply(m.chat, `${emoji2} *Responda el mensaje o escriba un número para agregar.*`, m)
     }
 
-    // Verificar si ya está en el grupo
+    if (!user) return conn.reply(m.chat, `${emoji2} *No se pudo identificar al usuario.*`, m)
+
+    // Si viene en formato sin @, normalizar
+    if (!user.endsWith('@s.whatsapp.net')) {
+      user = jidFromText(user)
+    }
+
     const isInGroup = Array.isArray(participants) && participants.some(p => p.id === user)
     if (isInGroup) return m.reply(`${emoji2} *El usuario ya está en el grupo.*`)
 
@@ -66,7 +79,7 @@ let handler = async (m, { conn, command, text, participants }) => {
 
   if (['invitar', 'invite'].includes(cmd)) {
     if (m.quoted) {
-      user = m.quoted.sender
+      user = jidFromQuoted(m.quoted)
     } else if (text) {
       if (text.includes('+') || /\s/.test(text))
         return conn.reply(m.chat, `${emoji2} *Ingrese el número sin "+" ni espacios.*`, m)
@@ -79,12 +92,17 @@ let handler = async (m, { conn, command, text, participants }) => {
       return conn.reply(m.chat, `${emoji2} *Responda el mensaje o escriba un número para invitar.*`, m)
     }
 
+    if (!user) return conn.reply(m.chat, `${emoji2} *No se pudo identificar al usuario.*`, m)
+    if (!user.endsWith('@s.whatsapp.net')) {
+      user = jidFromText(user)
+    }
+
     await enviarInvitacion(user)
     return
   }
 }
 
-handler.help = ['add <número> (responder)', 'invitar <número o responder>']
+handler.help = ['add <número o responder>', 'invitar <número o responder>']
 handler.tags = ['group']
 handler.command = ['add', 'agregar', 'añadir', 'invitar', 'invite']
 handler.group = true
