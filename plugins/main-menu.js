@@ -27,18 +27,12 @@ Crea un *Sub-Bot* con tu número utilizando *#qr* o *#code*
 > ✦ Ver la lista de comandos de la Bot.
 ᰔᩚ *#uptime • #runtime*
 > ✦ Ver tiempo activo o en linea de la Bot.
-ᰔᩚ *#sc • #script*
-> ✦ Link del repositorio oficial de la Bot
-ᰔᩚ *#staff • #colaboradores*
-> ✦ Ver la lista de desarrolladores de la Bot.
 ᰔᩚ *#serbot • #serbot code*
 > ✦ Crea una sesión de Sub-Bot.
 ᰔᩚ *#bots • #sockets*
 > ✦ Ver la lista de Sub-Bots activos.
 ᰔᩚ *#status • #estado*
-> ✦ Ver el estado actual de la Bot.
-ᰔᩚ *#links • #grupos*
-> ✦ Ver los enlaces oficiales de la Bot.
+> ✦ Ver el estado actual de la Bot
 ᰔᩚ *#infobot • #infobot*
 > ✦ Ver la información completa de la Bot.
 ᰔᩚ *#sug • #newcommand*
