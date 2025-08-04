@@ -3,25 +3,27 @@ let handler = async (m, { conn, command, text, participants }) => {
   const emoji2 = '⚠️'
   const cmd = command.toLowerCase()
 
-  // Normaliza JID desde texto tipo "51963896243" -> "51963896243@s.whatsapp.net"
+  // Normaliza texto a JID válido
   const jidFromText = txt => {
-    const digits = String(txt).replace(/\D/g, '')
+    const digits = String(txt || '').replace(/\D/g, '')
     if (!digits) return null
     return `${digits}@s.whatsapp.net`
   }
 
-  // Número limpio para mostrar en @mención
-  const cleanNumber = jid => {
-    return String(jid).replace(/@s\.whatsapp\.net$/i, '').replace(/\D/g, '')
-  }
-
-  // Extrae JID del mensaje citado de forma segura
+  // Extrae JID del mensaje citado de forma robusta
   const jidFromQuoted = (quoted) => {
     if (!quoted) return null
-    return quoted.sender || quoted.key?.participant || quoted.key?.remoteJid || null
+    if (quoted.sender) return quoted.sender
+    if (quoted.key?.participant) return quoted.key.participant
+    return null
   }
 
-  // Enviar invitación por link como fallback
+  // Limpia para mostrar en mención
+  const cleanNumber = jid => {
+    return String(jid || '').replace(/@s\.whatsapp\.net$/i, '').replace(/\D/g, '')
+  }
+
+  // Enviar invitación por enlace
   const enviarInvitacion = async (target) => {
     try {
       const code = await conn.groupInviteCode(m.chat)
@@ -34,7 +36,7 @@ let handler = async (m, { conn, command, text, participants }) => {
         mentions: [target]
       })
     } catch (err) {
-      console.error('Error enviando invitación fallback:', err)
+      console.error('Error fallback invitación:', err)
       m.reply(`${emoji2} *No se pudo invitar al usuario de ninguna forma.*`)
     }
   }
@@ -50,18 +52,20 @@ let handler = async (m, { conn, command, text, participants }) => {
       if (isNaN(text.replace(/\D/g, '')))
         return conn.reply(m.chat, `${emoji2} *Ingrese solo números.*`, m)
       user = jidFromText(text)
-      if (!user)
-        return conn.reply(m.chat, `${emoji2} *Número inválido.*`, m)
     } else {
       return conn.reply(m.chat, `${emoji2} *Responda el mensaje o escriba un número para agregar.*`, m)
     }
 
-    if (!user) return conn.reply(m.chat, `${emoji2} *No se pudo identificar al usuario.*`, m)
-
-    // Si viene en formato sin @, normalizar
-    if (!user.endsWith('@s.whatsapp.net')) {
-      user = jidFromText(user)
+    if (!user) {
+      console.log('DEBUG: m.quoted =', JSON.stringify(m.quoted, null, 2))
+      return conn.reply(m.chat, `${emoji2} *No se pudo identificar al usuario desde el reply o el número ingresado.*`, m)
     }
+
+    if (!user.endsWith('@s.whatsapp.net')) user = jidFromText(user) // normaliza si vino sin sufijo
+
+    // validación mínima: número suficientemente largo
+    const cleaned = cleanNumber(user)
+    if (cleaned.length < 8) return conn.reply(m.chat, `${emoji2} *Número demasiado corto o inválido.*`, m)
 
     const isInGroup = Array.isArray(participants) && participants.some(p => p.id === user)
     if (isInGroup) return m.reply(`${emoji2} *El usuario ya está en el grupo.*`)
@@ -71,7 +75,10 @@ let handler = async (m, { conn, command, text, participants }) => {
       m.reply(`${emoji} *Usuario agregado correctamente.*`)
     } catch (e) {
       console.error('Error agregando directamente:', e)
-      m.reply(`${emoji2} *No se pudo agregar directamente. Enviando enlace de invitación...*`)
+      // diagnóstico simplificado
+      let motivo = 'No se pudo agregar directamente.'
+      if (e?.output?.payload?.message) motivo += ` (${e.output.payload.message})`
+      m.reply(`${emoji2} *${motivo} Intentando con enlace...*`)
       await enviarInvitacion(user)
     }
     return
@@ -86,16 +93,16 @@ let handler = async (m, { conn, command, text, participants }) => {
       if (isNaN(text.replace(/\D/g, '')))
         return conn.reply(m.chat, `${emoji2} *Ingrese solo números.*`, m)
       user = jidFromText(text)
-      if (!user)
-        return conn.reply(m.chat, `${emoji2} *Número inválido.*`, m)
     } else {
       return conn.reply(m.chat, `${emoji2} *Responda el mensaje o escriba un número para invitar.*`, m)
     }
 
-    if (!user) return conn.reply(m.chat, `${emoji2} *No se pudo identificar al usuario.*`, m)
-    if (!user.endsWith('@s.whatsapp.net')) {
-      user = jidFromText(user)
+    if (!user) {
+      console.log('DEBUG: m.quoted =', JSON.stringify(m.quoted, null, 2))
+      return conn.reply(m.chat, `${emoji2} *No se pudo identificar al usuario para invitar.*`, m)
     }
+
+    if (!user.endsWith('@s.whatsapp.net')) user = jidFromText(user)
 
     await enviarInvitacion(user)
     return
