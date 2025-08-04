@@ -3,56 +3,83 @@ let handler = async (m, { conn, command, text, participants }) => {
   const emoji2 = '⚠️'
 
   let user = null
+  const cmd = command.toLowerCase()
 
-  if (['add', 'agregar', 'añadir'].includes(command)) {
-    if (m.quoted) user = m.quoted.sender
-    else if (text) {
-      if (text.includes('+'))
-        return conn.reply(m.chat, `${emoji2} *Ingrese el número sin "+" y sin espacios.*`, m)
-      if (isNaN(text))
-        return conn.reply(m.chat, `${emoji2} *Ingrese solo números sin letras.*`, m)
-      user = `${text.replace(/\D/g, '')}@s.whatsapp.net`
-    } else
-      return conn.reply(m.chat, `${emoji2} *Responda el mensaje o escriba número para agregar.*`, m)
+  const extractUserFromText = (txt) => {
+    const cleaned = txt.replace(/\D/g, '')
+    if (!cleaned) return null
+    return `${cleaned}@s.whatsapp.net`
+  }
 
-    let isInGroup = participants.some(p => p.id === user)
+  // Helper para enviar invitación si no se puede agregar directamente
+  const enviarInvitacion = async (target) => {
+    try {
+      const code = await conn.groupInviteCode(m.chat)
+      const inviteLink = 'https://chat.whatsapp.com/' + code
+      await conn.sendMessage(target, {
+        text: `📩 *Has sido invitado al grupo por @${m.sender.split('@')[0]}:*\n${inviteLink}\n\n(｡•́‿•̀｡) ¡Te esperamos!`
+      }, { mentions: [m.sender] })
+
+      m.reply(`${emoji} *Invitación enviada a @${target.split('@')[0]}*`, null, {
+        mentions: [target]
+      })
+    } catch (err) {
+      console.error('Error enviando invitación fallback:', err)
+      m.reply(`${emoji2} *No se pudo invitar al usuario de ninguna forma.*`)
+    }
+  }
+
+  if (['add', 'agregar', 'añadir'].includes(cmd)) {
+    if (m.quoted) {
+      user = m.quoted.sender
+    } else if (text) {
+      if (text.includes('+') || /\s/.test(text))
+        return conn.reply(m.chat, `${emoji2} *Ingrese el número sin "+" ni espacios.*`, m)
+      if (isNaN(text.replace(/\D/g, '')))
+        return conn.reply(m.chat, `${emoji2} *Ingrese solo números.*`, m)
+      user = extractUserFromText(text)
+      if (!user)
+        return conn.reply(m.chat, `${emoji2} *Número inválido.*`, m)
+    } else {
+      return conn.reply(m.chat, `${emoji2} *Responda el mensaje o escriba un número para agregar.*`, m)
+    }
+
+    const isInGroup = Array.isArray(participants) && participants.some(p => p.id === user)
     if (isInGroup) return m.reply(`${emoji2} *El usuario ya está en el grupo.*`)
 
     try {
       await conn.groupParticipantsUpdate(m.chat, [user], 'add')
       m.reply(`${emoji} *Usuario agregado correctamente.*`)
     } catch (e) {
-      console.error(e)
-      m.reply(`${emoji2} *No se pudo agregar al usuario.*`)
+      console.error('Error agregando directamente:', e)
+      // Fallback: enviar invitación si no se pudo agregar (p. ej. fue eliminado o tiene privacidad)
+      await enviarInvitacion(user)
     }
+    return
   }
 
-  if (['invitar', 'invite'].includes(command)) {
-    if (m.quoted) user = m.quoted.sender
-    else if (text) {
-      if (text.includes('+'))
-        return conn.reply(m.chat, `${emoji2} *Ingrese el número sin "+" y sin espacios.*`, m)
-      if (isNaN(text))
-        return conn.reply(m.chat, `${emoji2} *Ingrese solo números sin letras.*`, m)
-      user = `${text.replace(/\D/g, '')}@s.whatsapp.net`
-    } else
-      return conn.reply(m.chat, `${emoji2} *Responda el mensaje o escriba número para invitar.*`, m)
+  if (['invitar', 'invite'].includes(cmd)) {
+    if (m.quoted) {
+      user = m.quoted.sender
+    } else if (text) {
+      if (text.includes('+') || /\s/.test(text))
+        return conn.reply(m.chat, `${emoji2} *Ingrese el número sin "+" ni espacios.*`, m)
+      if (isNaN(text.replace(/\D/g, '')))
+        return conn.reply(m.chat, `${emoji2} *Ingrese solo números.*`, m)
+      user = extractUserFromText(text)
+      if (!user)
+        return conn.reply(m.chat, `${emoji2} *Número inválido.*`, m)
+    } else {
+      return conn.reply(m.chat, `${emoji2} *Responda el mensaje o escriba un número para invitar.*`, m)
+    }
 
     try {
-      let code = await conn.groupInviteCode(m.chat)
-      let inviteLink = 'https://chat.whatsapp.com/' + code
-
-      await conn.sendMessage(user, {
-        text: `📩 *Has sido invitado al grupo por @${m.sender.split('@')[0]}:*\n${inviteLink}\n\n(｡•́‿•̀｡) ¡Te esperamos!`
-      }, { mentions: [m.sender] })
-
-      m.reply(`${emoji} *Invitación enviada a @${user.split('@')[0]}*`, null, {
-        mentions: [user]
-      })
+      await enviarInvitacion(user)
     } catch (e) {
-      console.error(e)
+      console.error('Error en invitar:', e)
       m.reply(`${emoji2} *No se pudo enviar la invitación.*`)
     }
+    return
   }
 }
 
