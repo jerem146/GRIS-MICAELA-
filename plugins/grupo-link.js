@@ -1,18 +1,18 @@
 var handler = async (m, { conn }) => {
-  if (!m.isGroup) throw 'Este comando solo funciona en grupos.'
-  if (!conn.groupInviteCode) throw 'El bot necesita ser admin para generar el link.'
+  if (!m.isGroup) throw 'Este comando solo se puede usar en grupos.'
+  if (!conn.groupInviteCode) throw 'El bot necesita ser administrador del grupo.'
 
   const code = await conn.groupInviteCode(m.chat)
   const metadata = await conn.groupMetadata(m.chat)
   const url = 'https://chat.whatsapp.com/' + code
 
   await conn.sendMessage(m.chat, {
-    groupInviteMessage: {
-      groupJid: m.chat,
+    text: url,
+    inviteLinkGroupTypeV2: {
       inviteCode: code,
+      inviteLink: url,
       groupName: metadata.subject,
-      caption: url,
-      jpegThumbnail: await conn.profilePictureUrl(m.chat, 'image').catch(() => null)
+      groupJid: m.chat
     }
   }, { quoted: m })
 }
