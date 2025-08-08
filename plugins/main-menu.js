@@ -12,7 +12,7 @@ let txt = `୨♡୧ 𝑯𝒐𝒍𝒊𝒘𝒂, soy *${botname}* 💖
 𓆩♡𓆪 Bienvenida a mi menú, bombón~
 ╭─❥
 │💋 *Cliente:* @${userId.split('@')[0]}
-│💗 *Modo:* Público (disponible 24/7 😘)
+│💗 *Modo:* (disponible 24/7 😘)
 │👠 *Soy:* ${(conn.user.jid == global.conn.user.jid ? 'Bot Principal 🩷' : 'Bot Secundaria 💅')}
 │⏳ *Encendida hace:* ${uptime}
 │🌸 *Usuarios bellos:* ${totalreg}
