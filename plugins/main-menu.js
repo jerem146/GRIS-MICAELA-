@@ -7,19 +7,17 @@ let uptime = clockString(_uptime)
 let totalreg = Object.keys(global.db.data.users).length
 let totalCommands = Object.values(global.plugins).filter((v) => v.help && v.tags).length
     
-let txt = `╭━━━〔 🎐 *${botname}* 〕━━━╮
-┃ 𝙔𝙤 𝙨𝙤𝙮 𝙩𝙪 𝘼𝙨𝙞𝙨𝙩𝙚𝙣𝙩𝙚 𝘿𝙞𝙜𝙞𝙩𝙖𝙡
-┃ Hola, @${userId.split('@')[0]} ✦
-╰━━━━━━━━━━━━━━━━━━╯
+let txt = `🫧 𖥔 𝑺𝒖𝒔𝒖𝒓𝒓𝒐𝒔 𝒅𝒆 𝒖𝒏 𝑩𝒐𝒕 𝑬𝒕𝒆́𝒓𝒆𝒐 𖥔 🫧
 
-╭─〔 📄 𝐄𝐒𝐓𝐀𝐃𝐎 𝐃𝐄𝐋 𝐁𝐎𝐓 〕─╮
-┃▢  Modo       » Público
-┃▢  Bot        » ${(conn.user.jid == global.conn.user.jid ? 'Principal 🅥' : 'Sub Bot 🅑')}
-┃▢  Encendida  » ${uptime}
-┃▢  Usuarios   » ${totalreg}
-┃▢  Comandos   » ${totalCommands}
-┃▢  Motor      » Baileys MD
-╰──────────────────────╯
+╭─⊰ 📜 𝑷𝒓𝒆𝒔𝒆𝒏𝒄𝒊𝒂: *${botname}* ⊱─╮
+│ 𖦹 Invocado por: @${userId.split('@')[0]}
+│ 𖧧 Modo Astral: Público
+│ 𖠌 Jerarquía: ${(conn.user.jid == global.conn.user.jid ? '𝑷𝒓𝒊𝒏𝒄𝒊𝒑𝒂𝒍 🅥' : '𝑺𝒖𝒃 𝑩𝒐𝒕 🅑')}
+│ 𖥔 Tiempo en flujo: ${uptime}
+│ 𖧷 Almas vinculadas: ${totalreg}
+│ 𓃠 Conjuros disponibles: ${totalCommands}
+│ ⟁ Núcleo: Baileys Multi Device
+╰────────────────────────────╯
 • :･ﾟ⊹˚• \`『 Info-Bot 』\` •˚⊹:･ﾟ•
 
 ❍ Comandos para ver estado e información de la Bot.
