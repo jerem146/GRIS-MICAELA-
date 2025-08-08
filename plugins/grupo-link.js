@@ -1,28 +1,32 @@
-var handler = async (m, { conn }) => {
-  if (!m.isGroup) throw 'Este comando solo se puede usar en grupos.'
-  if (!conn.groupInviteCode) throw 'El bot necesita ser administrador.'
+var handler = async (m, { conn, args }) => {
+  let group = m.chat
+  let link = 'https://chat.whatsapp.com/' + await conn.groupInviteCode(group)
 
-  const code = await conn.groupInviteCode(m.chat)
-  const metadata = await conn.groupMetadata(m.chat)
+  // Obtener la imagen del grupo
+  let pp = './media/imagen-grupo.jpg' // imagen por defecto
+  try {
+    pp = await conn.profilePictureUrl(group, 'image')
+  } catch (e) {
+    console.log('No se pudo obtener la foto del grupo, usando imagen por defecto.')
+  }
 
-  await conn.sendMessage(m.chat, {
-    forward: {
-      key: {
-        fromMe: false,
-        participant: '0@s.whatsapp.net',
-        remoteJid: 'status@broadcast'
-      },
-      message: {
-        groupInviteMessage: {
-          groupJid: m.chat,
-          inviteCode: code,
-          groupName: metadata.subject,
-          caption: `https://chat.whatsapp.com/${code}`,
-          jpegThumbnail: null
-        }
-      }
-    }
-  })
+  // Texto de mensaje
+  let texto = `✿:･✧ ɢʀᴜᴘᴏ ᴅᴇ ᴡʜᴀᴛꜱᴀᴘᴘ ✧･:✿\n\n📎 *Enlace:* ${link}`
+
+  // Botón
+  const buttons = [
+    { buttonId: link, buttonText: { displayText: '🌐 Ver grupo' }, type: 1 }
+  ]
+
+  let buttonMessage = {
+    image: { url: pp },
+    caption: texto,
+    footer: '© 𝘾𝙖𝙧𝙡𝙮 𝘽𝙤𝙩',
+    buttons: buttons,
+    headerType: 4
+  }
+
+  await conn.sendMessage(m.chat, buttonMessage, { quoted: m })
 }
 
 handler.help = ['link']
