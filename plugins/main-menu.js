@@ -7,25 +7,19 @@ let uptime = clockString(_uptime)
 let totalreg = Object.keys(global.db.data.users).length
 let totalCommands = Object.values(global.plugins).filter((v) => v.help && v.tags).length
     
-let txt = `╭─〔🌸 𝙒𝙖𝙩𝙖𝙨𝙝𝙞 𝙬𝙖 *${botname}* 〕─╮
-│ こんにちは (｡•̀ᴗ-)✧
-│ Aquí tienes la lista de comandos:
-╰────────────────────────╯
+let txt = `╭━━━〔 🎐 *${botname}* 〕━━━╮
+┃ 𝙔𝙤 𝙨𝙤𝙮 𝙩𝙪 𝘼𝙨𝙞𝙨𝙩𝙚𝙣𝙩𝙚 𝘿𝙞𝙜𝙞𝙩𝙖𝙡
+┃ Hola, @${userId.split('@')[0]} ✦
+╰━━━━━━━━━━━━━━━━━━╯
 
-╭──〔 🧾 𝐈𝐍𝐅𝐎 𝐃𝐄𝐋 𝐔𝐒𝐔𝐀𝐑𝐈𝐎 〕──╮
-│👤 Cliente    » @${userId.split('@')[0]}
-│🔓 Modo       » Público
-│🤖 Bot        » ${(conn.user.jid == global.conn.user.jid ? 'Principal 🅥' : 'Sub Bot 🅑')}
-│⏱️ Activada   » ${uptime}
-│👥 Usuarios   » ${totalreg}
-│📚 Comandos   » ${totalCommands}
-│📡 Plataforma » Baileys MD
-╰──────────────────────────╯
-
-╭─〔 ✨ 𝐒𝐮𝐛-𝐁𝐨𝐭𝐬 〕─╮
-│ ¿Quieres crear tu *Sub-Bot*?
-│ Usa: *#qr* o *#code*
-╰────────────────────╯
+╭─〔 📄 𝐄𝐒𝐓𝐀𝐃𝐎 𝐃𝐄𝐋 𝐁𝐎𝐓 〕─╮
+┃▢  Modo       » Público
+┃▢  Bot        » ${(conn.user.jid == global.conn.user.jid ? 'Principal 🅥' : 'Sub Bot 🅑')}
+┃▢  Encendida  » ${uptime}
+┃▢  Usuarios   » ${totalreg}
+┃▢  Comandos   » ${totalCommands}
+┃▢  Motor      » Baileys MD
+╰──────────────────────╯
 • :･ﾟ⊹˚• \`『 Info-Bot 』\` •˚⊹:･ﾟ•
 
 ❍ Comandos para ver estado e información de la Bot.
