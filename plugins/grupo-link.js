@@ -1,48 +1,19 @@
-import fetch from 'node-fetch'
+let handler = async (m, { conn, args }) => {
+  // Si quieres que funcione con solo escribir el comando sin argumentos
+  let code = 'GJAsdPyhLrVGW0i5F7JQAZ' // Código de invitación del grupo (puedes poner dinámico si quieres)
 
-var handler = async (m, { conn }) => {
-  if (!m.isGroup) return conn.reply(m.chat, '❗ Este comando solo funciona en grupos.', m)
-  if (!conn.groupInviteCode) return conn.reply(m.chat, '❗ El bot debe ser administrador para obtener el enlace.', m)
-
-  const metadata = await conn.groupMetadata(m.chat)
-  const groupName = metadata.subject
-  const inviteCode = await conn.groupInviteCode(m.chat)
-  const profileUrl = await conn.profilePictureUrl(m.chat, 'image').catch(() => null)
-
-  let thumbnail = null
-  if (profileUrl) {
-    try {
-      const res = await fetch(profileUrl)
-      thumbnail = await res.buffer()
-    } catch (e) {
-      console.log('❌ No se pudo obtener la imagen del grupo.')
+  await conn.sendMessage(m.chat, {
+    groupInviteMessage: {
+      groupJid: '1234567890-123456@g.us', // El ID real del grupo
+      inviteCode: code, // Código de invitación
+      groupName: 'ꕥ 𝖬ichi v2 ( BETA )☄︎', // Nombre del grupo
+      caption: '¡Únete a nuestro grupo oficial!', // Texto que aparece debajo del título
+      jpegThumbnail: await conn.profilePictureUrl('1234567890-123456@g.us', 'image') // Imagen del grupo
+        .then(url => fetch(url).then(res => res.buffer()))
+        .catch(() => null)
     }
-  }
-
-  const fakeMsg = {
-    key: {
-      fromMe: false,
-      participant: '0@s.whatsapp.net',
-      remoteJid: 'status@broadcast'
-    },
-    message: {
-      groupInviteMessage: {
-        groupJid: m.chat,
-        inviteCode: inviteCode,
-        groupName: groupName,
-        caption: '',
-        jpegThumbnail: thumbnail
-      }
-    }
-  }
-
-  await conn.relayMessage(m.chat, fakeMsg.message, { messageId: m.key.id })
+  }, { quoted: m })
 }
 
-handler.help = ['link']
-handler.tags = ['grupo']
-handler.command = ['link', 'enlace']
-handler.group = true
-handler.botAdmin = true
-
+handler.command = ['grupolink', 'linkgrupo']
 export default handler
