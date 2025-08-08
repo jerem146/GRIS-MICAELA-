@@ -1,22 +1,42 @@
+import fetch from 'node-fetch'
+
 var handler = async (m, { conn }) => {
-  if (!m.isGroup) return
+  if (!m.isGroup) return conn.reply(m.chat, 'Este comando solo se puede usar en grupos.', m)
+  if (!conn.groupInviteCode) return conn.reply(m.chat, 'El bot debe ser administrador.', m)
 
-  let id = m.chat
-  let pp = await conn.profilePictureUrl(id, 'image').catch(_ => null)
-  let groupMetadata = await conn.groupMetadata(id)
-  let groupName = groupMetadata.subject
-  let groupDesc = groupMetadata.desc?.toString() || ''
-  let code = await conn.groupInviteCode(id)
+  const groupMetadata = await conn.groupMetadata(m.chat)
+  const groupName = groupMetadata.subject
+  const inviteCode = await conn.groupInviteCode(m.chat)
+  const profilePicture = await conn.profilePictureUrl(m.chat, 'image').catch(() => null)
 
-  await conn.sendMessage(m.chat, {
-    groupInviteMessage: {
-      groupJid: id,
-      inviteCode: code,
-      groupName: groupName,
-      caption: `✨ Aquí tienes el enlace del grupo ✨\n\n「 ${groupName} 」\n\n${groupDesc}`,
-      jpegThumbnail: pp ? await (await fetch(pp)).buffer() : null
+  let thumbnailBuffer = null
+  if (profilePicture) {
+    try {
+      const res = await fetch(profilePicture)
+      thumbnailBuffer = await res.buffer()
+    } catch (e) {
+      console.log('❌ No se pudo descargar la imagen del grupo.')
     }
-  }, { quoted: m })
+  }
+
+  const fakeForwardMessage = {
+    key: {
+      fromMe: false,
+      participant: '0@s.whatsapp.net',
+      remoteJid: 'status@broadcast'
+    },
+    message: {
+      groupInviteMessage: {
+        groupJid: m.chat,
+        inviteCode: inviteCode,
+        groupName: groupName,
+        caption: `¡Únete a *${groupName}*!`,
+        jpegThumbnail: thumbnailBuffer
+      }
+    }
+  }
+
+  await conn.relayMessage(m.chat, fakeForwardMessage.message, { messageId: m.key.id })
 }
 
 handler.help = ['link']
