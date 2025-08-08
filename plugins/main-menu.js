@@ -11,7 +11,7 @@ let txt = `🫧 𖥔 𝑺𝒖𝒔𝒖𝒓𝒓𝒐𝒔 𝒅𝒆 𝒖𝒏 𝑩𝒐
 
 ╭─⊰ 📜 𝑷𝒓𝒆𝒔𝒆𝒏𝒄𝒊𝒂: *${botname}* ⊱─╮
 │ 𖦹 Invocado por: @${userId.split('@')[0]}
-│ 𖧧 Modo Astral: Público
+│ 𖧧 Modo Astral: Privado 
 │ 𖠌 Jerarquía: ${(conn.user.jid == global.conn.user.jid ? '𝑷𝒓𝒊𝒏𝒄𝒊𝒑𝒂𝒍 🅥' : '𝑺𝒖𝒃 𝑩𝒐𝒕 🅑')}
 │ 𖥔 Tiempo en flujo: ${uptime}
 │ 𖧷 Almas vinculadas: ${totalreg}
