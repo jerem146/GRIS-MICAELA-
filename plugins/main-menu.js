@@ -7,19 +7,25 @@ let uptime = clockString(_uptime)
 let totalreg = Object.keys(global.db.data.users).length
 let totalCommands = Object.values(global.plugins).filter((v) => v.help && v.tags).length
     
-let txt = `Hola! Soy *${botname}* (｡•̀ᴗ-)✧
-Aquí tienes la lista de comandos
-╭┈ ↷
-│ᰔᩚ Cliente » @${userId.split('@')[0]}
-│❀ Modo » Publico
-│✦ Bot » ${(conn.user.jid == global.conn.user.jid ? 'Principal 🅥' : 'Prem Bot 🅑')}
-│ⴵ Activada » ${uptime}
-│✰ Usuarios » ${totalreg}
-│✧ Comandos » ${totalCommands}
-│🜸 Baileys » Multi Device
-╰─────────────────
-Crea un *Sub-Bot* con tu número utilizando *#qr* o *#code*
+let txt = `╭─〔🌸 𝙒𝙖𝙩𝙖𝙨𝙝𝙞 𝙬𝙖 *${botname}* 〕─╮
+│ こんにちは (｡•̀ᴗ-)✧
+│ Aquí tienes la lista de comandos:
+╰────────────────────────╯
 
+╭──〔 🧾 𝐈𝐍𝐅𝐎 𝐃𝐄𝐋 𝐔𝐒𝐔𝐀𝐑𝐈𝐎 〕──╮
+│👤 Cliente    » @${userId.split('@')[0]}
+│🔓 Modo       » Público
+│🤖 Bot        » ${(conn.user.jid == global.conn.user.jid ? 'Principal 🅥' : 'Sub Bot 🅑')}
+│⏱️ Activada   » ${uptime}
+│👥 Usuarios   » ${totalreg}
+│📚 Comandos   » ${totalCommands}
+│📡 Plataforma » Baileys MD
+╰──────────────────────────╯
+
+╭─〔 ✨ 𝐒𝐮𝐛-𝐁𝐨𝐭𝐬 〕─╮
+│ ¿Quieres crear tu *Sub-Bot*?
+│ Usa: *#qr* o *#code*
+╰────────────────────╯
 • :･ﾟ⊹˚• \`『 Info-Bot 』\` •˚⊹:･ﾟ•
 
 ❍ Comandos para ver estado e información de la Bot.
