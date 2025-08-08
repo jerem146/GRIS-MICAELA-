@@ -1,22 +1,32 @@
-var handler = async (m, { conn }) => {
+var handler = async (m, { conn, args }) => {
   let group = m.chat
-  let pp = await conn.profilePictureUrl(group, 'image').catch(_ => 'https://telegra.ph/file/265c672094dfa87caea19.jpg')
   let link = 'https://chat.whatsapp.com/' + await conn.groupInviteCode(group)
-  let caption = `✿:･✧ *Link del grupo* ✧･:✿\n\n${link}`
 
-  await conn.sendMessage(m.chat, {
+  // Obtener la imagen del grupo
+  let pp = './media/imagen-grupo.jpg' // imagen por defecto
+  try {
+    pp = await conn.profilePictureUrl(group, 'image')
+  } catch (e) {
+    console.log('No se pudo obtener la foto del grupo, usando imagen por defecto.')
+  }
+
+  // Texto de mensaje
+  let texto = `✿:･✧ ᴜ́ɴᴇᴛᴇ ᴀʟ ᴄʜᴀᴛ ɢʀᴜᴘᴀʟ ✧･:✿\n\n📎 *Enlace:* ${link}`
+
+  // Botón
+  const buttons = [
+    { buttonId: link, buttonText: { displayText: '🌐 Ver grupo' }, type: 1 }
+  ]
+
+  let buttonMessage = {
     image: { url: pp },
-    caption: caption,
-    footer: 'Presiona el botón para ir al grupo',
-    buttons: [
-      {
-        buttonId: link,
-        buttonText: { displayText: '🌐 Ver grupo' },
-        type: 1
-      }
-    ],
+    caption: texto,
+    footer: '© 𝘾𝙖𝙧𝙡𝙮 𝘽𝙤𝙩',
+    buttons: buttons,
     headerType: 4
-  }, { quoted: m })
+  }
+
+  await conn.sendMessage(m.chat, buttonMessage, { quoted: m })
 }
 
 handler.help = ['link']
