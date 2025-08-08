@@ -1,13 +1,20 @@
 var handler = async (m, { conn }) => {
-  let group = m.chat
-  let code = await conn.groupInviteCode(group)
-  let link = 'https://chat.whatsapp.com/' + code
+  if (!m.isGroup) throw 'Este comando solo funciona en grupos.'
+  if (!conn.groupInviteCode) throw 'El bot necesita ser admin para generar el link.'
 
-  // Primer mensaje decorado
-  await conn.reply(m.chat, '⋆｡°✩ ɪɴᴠɪᴛᴀᴄɪᴏ́ɴ ᴅᴇʟ ɢʀᴜᴘᴏ ✩°｡⋆\n\n⬇️ Aquí tienes el enlace de este grupo:', m)
+  const code = await conn.groupInviteCode(m.chat)
+  const metadata = await conn.groupMetadata(m.chat)
+  const url = 'https://chat.whatsapp.com/' + code
 
-  // Segundo mensaje: solo el link (para activar el preview del grupo)
-  await conn.sendMessage(m.chat, { text: link }, { quoted: m })
+  await conn.sendMessage(m.chat, {
+    groupInviteMessage: {
+      groupJid: m.chat,
+      inviteCode: code,
+      groupName: metadata.subject,
+      caption: url,
+      jpegThumbnail: await conn.profilePictureUrl(m.chat, 'image').catch(() => null)
+    }
+  }, { quoted: m })
 }
 
 handler.help = ['link']
