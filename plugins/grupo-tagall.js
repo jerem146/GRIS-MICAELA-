@@ -12,7 +12,9 @@ const handler = async (m, { isOwner, isAdmin, conn, text, participants, args, co
     throw false;
   }
   const pesan = args.join` `;
-  let teks = `*[ ! ] Invocando a los integrantes del grupo*\n\n*Gawr Gura* *BOT* *~> Invocador* : _@${m.sender.split('@')[0]}_\n*~> Mensaje* : _${pesan}_\n\n`;
+  const botName = global.botname || 'BOT'; // Usa 'BOT' si no está definido
+
+  let teks = `*[ ! ] Invocando a los integrantes del grupo*\n\n*${botName}* *~> Invocador* : _@${m.sender.split('@')[0]}_\n*~> Mensaje* : _${pesan}_\n\n`;
   teks += `╔═══ஜ۩۞۩ஜ═══╗\n`;
   for (const mem of participants) {
     teks += `╠➥ @${mem.id.split('@')[0]}\n`;
@@ -26,4 +28,5 @@ handler.tags = ['group'];
 handler.command = ['todos', 'invocar', 'tagall'];
 handler.admin = true;
 handler.group = true;
+
 export default handler;
