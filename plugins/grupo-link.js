@@ -1,29 +1,25 @@
 var handler = async (m, { conn }) => {
-  if (!m.isGroup) return conn.reply(m.chat, 'Este comando solo funciona en grupos.', m)
-  if (!conn.groupMetadata) return conn.reply(m.chat, 'No se pudo obtener la metadata del grupo.', m)
+  if (!m.isGroup) return
 
-  let group = m.chat
-  let metadata = await conn.groupMetadata(group)
-  let groupName = metadata.subject || 'Grupo'
-  let groupDesc = metadata.desc || 'Sin descripción.'
-  let link = 'https://chat.whatsapp.com/' + await conn.groupInviteCode(group)
-
-  let pp = './media/menus/img-grupo.png'
-  try {
-    pp = await conn.profilePictureUrl(group, 'image')
-  } catch (e) {}
+  let id = m.chat
+  let pp = await conn.profilePictureUrl(id, 'image').catch(_ => null)
+  let groupMetadata = await conn.groupMetadata(id)
+  let groupName = groupMetadata.subject
+  let groupDesc = groupMetadata.desc?.toString() || ''
+  let code = await conn.groupInviteCode(id)
 
   await conn.sendMessage(m.chat, {
-    image: { url: pp },
-    caption: `✿ 𝐍𝐎𝐌𝐁𝐑𝐄: ${groupName}\n✿ 𝐃𝐄𝐒𝐂𝐑𝐈𝐏𝐂𝐈𝐎́𝐍: ${groupDesc}\n✿ 𝐄𝐍𝐋𝐀𝐂𝐄: ${link}`,
-    footer: 'Presiona el botón para unirte o compartir.',
-    buttons: [
-      { buttonText: { displayText: '「 Ver grupo 」' }, type: 1, url: link }
-    ]
+    groupInviteMessage: {
+      groupJid: id,
+      inviteCode: code,
+      groupName: groupName,
+      caption: `✨ Aquí tienes el enlace del grupo ✨\n\n「 ${groupName} 」\n\n${groupDesc}`,
+      jpegThumbnail: pp ? await (await fetch(pp)).buffer() : null
+    }
   }, { quoted: m })
 }
 
-handler.help = ['link', 'enlace']
+handler.help = ['link']
 handler.tags = ['grupo']
 handler.command = ['link', 'enlace']
 handler.group = true
