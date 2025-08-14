@@ -28,16 +28,17 @@ img = await (await fetch(pp)).buffer()
 img = await (await fetch(defaultImage)).buffer()
 }
 
-const txt = 'ゲ◜៹ NUEVO MIEMBRO ៹◞ゲ'
-const bienvenida = `┏╼★${textbot}
-┋「 Bienvenido 」
-┗╼★ 「 ${tag} 」
-┋❖ ${welcomeMessage}
-┋❀ Grupo: ${groupMetadata.subject}
-┋❀ Miembros: ${totalMembers}
-┗━━━━━━━━━━━━━━━┅ ⳹
+const txt1 = '✦ ゲ◜៹ DESPEDIDA ៹◞ゲ ✦'
+    const bye = `
+╭━━━〔 ${textbot} 〕╮
+┃ ❖ ${tag}
+┃ ✦ *${despMessage}*
+┃
+┃ ✦ *Grupo:* ${groupMetadata.subject}
+┃ ✦ *Miembros:* ${totalMembers}
+╰━━━━━━━━━━━━━━━⳹
+🏮 ${global.dev}`
 
-> ✐ Puedes usar #profile para ver tu perfil.`
 
 
 
