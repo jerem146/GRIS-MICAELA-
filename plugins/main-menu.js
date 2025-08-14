@@ -1,13 +1,15 @@
-let handler = async (m, { conn, args }) => {
-    let userId = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.sender
-    let user = global.db.data.users[userId]
-    let name = conn.getName(userId)
-    let _uptime = process.uptime() * 1000
-    let uptime = clockString(_uptime)
-    let totalreg = Object.keys(global.db.data.users).length
-    let totalCommands = Object.values(global.plugins).filter((v) => v.help && v.tags).length
+import fetch from 'node-fetch'
 
-    let txt = `
+let handler = async (m, { conn, args }) => {
+  let userId = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.sender
+  let user = global.db.data.users[userId]
+  let name = conn.getName(userId)
+  let _uptime = process.uptime() * 1000
+  let uptime = clockString(_uptime)
+  let totalreg = Object.keys(global.db.data.users).length
+  let totalCommands = Object.values(global.plugins).filter((v) => v.help && v.tags).length
+
+  let txt = `
 *⌬━━━━▣━━◤◉‿◉◢━━▣━━━━━⌬*
 
 Hola *@${userId.split('@')[0]}* soy *${botname}*
@@ -21,30 +23,30 @@ Hola *@${userId.split('@')[0]}* soy *${botname}*
 ║ ✎ *Comandos »* ${totalCommands}
 ╚══════ ♢.💥.♢ ══════➤
 
-*sɪɢᴜᴇ ᴇʟ ᴄᴀɴᴀʟ ᴏғɪᴄɪᴀʟ:*
+*sɪɢᴜᴇ ᴇʟ ᴄᴀɴᴀʟ ᴏғɪᴄɪᴀʟ:*  
 ${redes}
 
-*◤━━━━━ ☆. 🌀 .☆ ━━━━━◥*
+◤━━━━━ ☆. 🌀 .☆ ━━━━━◥
 ⚙ *𝑳𝑰𝑺𝑻𝑨 𝑫𝑬 𝑪𝑶𝑴𝑨𝑵𝑫𝑶𝑺*
-    `.trim()
+`.trim()
 
-    await conn.sendMessage(m.chat, { 
-        text: txt,
-        contextInfo: {
-            mentionedJid: [userId],
-            externalAdReply: {                
-                title: botname,
-                body: textbot,
-                mediaType: 1,
-                mediaUrl: redes,
-                sourceUrl: redes,
-                thumbnail: await (await fetch(banner)).buffer(),
-                showAdAttribution: false,
-                containsAutoReply: true,
-                renderLargerThumbnail: true
-            }
-        }
-    }, { quoted: m })
+  await conn.sendMessage(m.chat, { 
+    image: await (await fetch(banner)).buffer(), // Imagen grande
+    caption: txt, // Texto del menú
+    contextInfo: {
+      mentionedJid: [userId],
+      externalAdReply: {                
+        title: botname,
+        body: textbot,
+        mediaType: 1,
+        mediaUrl: redes,
+        sourceUrl: redes,
+        showAdAttribution: false,
+        containsAutoReply: true,
+        renderLargerThumbnail: true
+      }
+    }
+  }, { quoted: m })
 }
 
 handler.help = ['menu']
@@ -54,8 +56,8 @@ handler.command = ['menu', 'menú', 'help']
 export default handler
 
 function clockString(ms) {
-    let seconds = Math.floor((ms / 1000) % 60)
-    let minutes = Math.floor((ms / (1000 * 60)) % 60)
-    let hours = Math.floor((ms / (1000 * 60 * 60)) % 24)
-    return `${hours}h ${minutes}m ${seconds}s`
+  let seconds = Math.floor((ms / 1000) % 60)
+  let minutes = Math.floor((ms / (1000 * 60)) % 60)
+  let hours = Math.floor((ms / (1000 * 60 * 60)) % 24)
+  return `${hours}h ${minutes}m ${seconds}s`
 }
