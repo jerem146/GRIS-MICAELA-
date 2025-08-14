@@ -1,5 +1,7 @@
 let handler = async (m, { conn, args }) => {
 let userId = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.sender
+let user = global.db.data.users[userId]
+let name = conn.getName(userId)
 let _uptime = process.uptime() * 1000
 let uptime = clockString(_uptime)
 let totalreg = Object.keys(global.db.data.users).length
@@ -12,14 +14,14 @@ Hola *@${userId.split('@')[0]}* soy *${botname}*
 ╔══════⌬『 𝑰 𝑵 𝑭 𝑶 』
 ║ ✎ *Cliente:* @${userId.split('@')[0]}
 ║ ✎ *Bot:* ${(conn.user.jid == global.conn.user.jid ? 'Principal 🅥' : 'Secundaria 💅')}
-║ ✎ *Modo:* Privado 
+║ ✎ *Modo:* Público
 ║ ✎ *Usuarios »* ${totalreg}
 ║ ✎ *Tiempo Activo:* ${uptime}
 ║ ✎ *Comandos »* ${totalCommands}
 ╚══════ ♢.💥.♢ ══════➤
 
-📢 *Canal oficial:*
-https://whatsapp.com/channel/0029Vb6LUgzJZg3yFilYpy1v  
+*sɪɢᴜᴇ ᴇʟ ᴄᴀɴᴀʟ ᴏғɪᴄɪᴀʟ:*
+https://whatsapp.com/channel/0029Vb6LUgzJZg3yFilYpy1v
 
 ◤━━━━━ ☆. 🌀 .☆ ━━━━━◥
 ⚙ *𝑳𝑰𝑺𝑻𝑨 𝑫𝑬 𝑪𝑶𝑴𝑨𝑵𝑫𝑶𝑺*
