@@ -66,8 +66,8 @@ https://whatsapp.com/channel/0029Vb6LUgzJZg3yFilYpy1v
 ∫➤ /admin  
 ∫➤ /restablecer  
 ∫➤ /revoke  
-∫➤ /grupo  
-∫➤ /gruop  
+∫➤ /open  
+∫➤ /close  
 ∫➤ /group  
 ∫➤ /kick  
 ∫➤ /add  
