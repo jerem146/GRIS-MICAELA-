@@ -46,8 +46,8 @@ export async function before(m, { conn, participants, groupMetadata }) {
 ┃ ✦ 𝑯𝒐𝒍𝒂 ${taguser}
 ┃ ❖ ${welcomeMessage}
 ┃
-┃ ✦ Grupo: ${groupMetadata.subject}
-┃ ✦ Miembros: ${totalMembers}
+┃ ✦ *Grupo:* ${groupMetadata.subject}
+┃ ✦ *Miembros:* ${totalMembers}
 ╰━━━━━━━━━━━━━⳹
 ⚔ Usa *#profile* para ver tu ficha.`
 
