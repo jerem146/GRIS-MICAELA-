@@ -1,5 +1,3 @@
-// creado por Ado. Adaptado y reforzado.
-
 import fetch from 'node-fetch'
 import yts from 'yt-search'
 import fs from 'fs'
@@ -69,8 +67,9 @@ let handler = async (m, { conn, args, command, usedPrefix }) => {
     const thumbnail = data.thumbnail || videoInfo.thumbnail || ''
     const duration = videoInfo.timestamp || 'Desconocida'
     const tipo = isAudio ? 'Audio' : 'Video'
+    const safeTitle = sanitizeFileName(title)
 
-    // Mensaje informativo
+    // Enviar mensaje informativo con miniatura
     const details = `
 📌 Título : *${title}*
 📁 Duración : *${duration}*
@@ -78,13 +77,35 @@ let handler = async (m, { conn, args, command, usedPrefix }) => {
 🌐 Fuente : *YouTube*
     `.trim()
 
+    // Descargar miniatura como buffer
+    let thumbBuffer = null
+    try {
+      if (thumbnail) {
+        const arrayBuffer = await (await fetch(thumbnail)).arrayBuffer()
+        thumbBuffer = Buffer.from(arrayBuffer)
+      }
+    } catch { thumbBuffer = null }
+
+    // Mensaje preview con miniatura
     await conn.sendMessage(
       m.chat,
-      { text: details },
+      {
+        text: details,
+        contextInfo: {
+          externalAdReply: {
+            title: title,
+            body: '🎬 Video de YouTube',
+            thumbnailUrl: thumbnail,
+            sourceUrl: url,
+            mediaType: 1,
+            renderLargerThumbnail: true
+          }
+        }
+      },
       { quoted: m }
     )
 
-    const safeTitle = sanitizeFileName(title)
+    // Enviar archivo real con miniatura si existe
     if (isAudio) {
       await conn.sendMessage(
         m.chat,
@@ -92,11 +113,14 @@ let handler = async (m, { conn, args, command, usedPrefix }) => {
         { quoted: m }
       )
     } else {
-      await conn.sendMessage(
-        m.chat,
-        { video: { url: download }, mimetype: 'video/mp4', fileName: `${safeTitle}.mp4`, caption: `✧ Aquí tienes: ${title}` },
-        { quoted: m }
-      )
+      const msg = {
+        video: { url: download },
+        mimetype: 'video/mp4',
+        fileName: `${safeTitle}.mp4`,
+        caption: `✧ Aquí tienes: ${title}`
+      }
+      if (thumbBuffer) msg.jpegThumbnail = thumbBuffer
+      await conn.sendMessage(m.chat, msg, { quoted: m })
     }
 
   } catch (e) {
@@ -110,4 +134,3 @@ handler.tags = ['downloader']
 handler.command = ['play', 'play2', 'ytmp3', 'ytmp4', 'ytv', 'mp4', 'playaudio', 'yta']
 
 export default handler
-  
