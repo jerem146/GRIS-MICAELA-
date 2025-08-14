@@ -26,7 +26,7 @@ https://whatsapp.com/channel/0029Vb6LUgzJZg3yFilYpy1v
 ◤━━━━━ ☆. 🌀 .☆ ━━━━━◥
 ⚙ *𝑳𝑰𝑺𝑻𝑨 𝑫𝑬 𝑪𝑶𝑴𝑨𝑵𝑫𝑶𝑺*
 
-*┏━━▣━━⌬〘 BUSCADORES 🔍 〙*
+*┏━━▣━━⌬〘 BUSCADORES 🔍〙*
 ∫➤ /tiktoksearch  
 ∫➤ /tiktoks  
 ∫➤ /tweetposts  
@@ -52,7 +52,7 @@ https://whatsapp.com/channel/0029Vb6LUgzJZg3yFilYpy1v
 ∫➤ /npmjs  
 *┗━━━▣━━⌬⌨⌬━━▣━━━━⌬*
 
-*┏━━▣━━⌬〘 GRUPO - ADMINS 🛡️ 〙*
+*┏━━▣━━⌬〘 GRUPO-ADMINS 🛡️〙*
 ∫➤ /hidetag  
 ∫➤ /tag  
 ∫➤ /gp  
@@ -250,7 +250,7 @@ https://whatsapp.com/channel/0029Vb6LUgzJZg3yFilYpy1v
 ∫➤ /wm  
 *┗━━━▣━━⌬⌨⌬━━▣━━━━⌬*
 
-*┏━━▣━━⌬〘 CONVERTIDORES ⚡ 〙*
+*┏━━▣━━⌬〘 CONVERTIDORES ⚡〙*
 ∫➤ /calcular  
 ∫➤ /cal  
 ∫➤ /tiempo  
