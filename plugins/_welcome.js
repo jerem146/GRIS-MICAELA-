@@ -40,15 +40,19 @@ export async function before(m, { conn, participants, groupMetadata }) {
   }
 
   if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_ADD) {
-    const txt = 'ゲ◜៹ NUEVO MIEMBRO ៹◞ゲ'
-    const bienvenida = `┏╼★${textbot}
-┋「 Bienvenido 」
-┗╼★ 「 ${taguser} 」
- ┋❖ ${welcomeMessage}
- ┋❀ Grupo: ${groupMetadata.subject}
- ┋❀ Miembros: ${totalMembers}
- ┗━━━━━━━━━━━━━━━┅ ⳹
-> ✐ Puedes usar *#profile* para ver tu perfil.`
+    const txt = '🈶「 NUEVO CAMARADA 」🈶'
+    const bienvenida = `
+╭━━━〔 ${textbot} 〕━━━╮
+┃ 🏯 𝑯𝒐𝒏𝒐𝒓 𝒚 𝒃𝒊𝒆𝒏𝒗𝒆𝒏𝒊𝒅𝒂  
+┃ ╭───────────────╮
+┃ │ ${taguser}
+┃ │ ${welcomeMessage}
+┃ ╰───────────────╯
+┃
+┃ 📜 Grupo: ${groupMetadata.subject}
+┃ 👥 Miembros: ${totalMembers}
+╰━━━━━━━━━━━━━━━⳹
+🍃 *Usa #profile para ver tu ficha de viajero*`
 
     await conn.sendMini(m.chat, txt, dev, bienvenida, img, img, redes, fkontak)
 
@@ -56,15 +60,19 @@ export async function before(m, { conn, participants, groupMetadata }) {
     m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE ||
     m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_LEAVE
   ) {
-    const txt1 = 'ゲ◜៹ BYE MIEMBRO ៹◞ゲ'
-    const bye = `┏╼★${textbot}
-┋「 ADIÓS 👋 」
-┗╼★ 「 ${taguser} 」
- ┋❖ ${despMessage}
- ┋❀ Grupo: ${groupMetadata.subject}
- ┋❀ Miembros: ${totalMembers}
- ┗━━━━━━━━━━━━━━━┅ ⳹
-> > ${global.dev}`
+    const txt1 = '💨「 DESPEDIDA 」💨'
+    const bye = `
+╭━━━〔 ${textbot} 〕━━━╮
+┃ 🌸 𝑬𝒍 𝒗𝒊𝒆𝒏𝒕𝒐 𝒔𝒆 𝒍𝒍𝒆𝒗𝒂 𝒂...
+┃ ╭───────────────╮
+┃ │ ${taguser}
+┃ │ ${despMessage}
+┃ ╰───────────────╯
+┃
+┃ 📜 Grupo: ${groupMetadata.subject}
+┃ 👥 Miembros: ${totalMembers}
+╰━━━━━━━━━━━━━━━⳹
+🏮 ${global.dev}`
 
     await conn.sendMini(m.chat, txt1, dev, bye, img, img, redes, fkontak)
   }
