@@ -44,7 +44,7 @@ export async function before(m, { conn, participants, groupMetadata }) {
     const bienvenida = `
 ╭━━━〔 ${textbot} 〕╮
 ┃ ✦ 𝑯𝒐𝒍𝒂 ${taguser}
-┃ ❖ ${welcomeMessage}
+┃ ❖ *${welcomeMessage}*
 ┃
 ┃ ✦ *Grupo:* ${groupMetadata.subject}
 ┃ ✦ *Miembros:* ${totalMembers}
@@ -61,10 +61,10 @@ export async function before(m, { conn, participants, groupMetadata }) {
     const bye = `
 ╭━━━〔 ${textbot} ╮
 ┃ ❖ ${taguser}
-┃ ✦ ${despMessage}
+┃ ✦ *${despMessage}*
 ┃
-┃ ✦ Grupo: ${groupMetadata.subject}
-┃ ✦ Miembros: ${totalMembers}
+┃ ✦ *Grupo:* ${groupMetadata.subject}
+┃ ✦ *Miembros:* ${totalMembers}
 ╰━━━━━━━━━━━━━━━⳹
 🏮 ${global.dev}`
 
