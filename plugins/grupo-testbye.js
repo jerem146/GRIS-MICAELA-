@@ -31,15 +31,17 @@ let handler = async (m, { conn, text, participants, groupMetadata }) => {
     img = await (await fetch(defaultImage)).buffer()
   }
 
-  const txt = '✦◜៹ USUARIO RETIRADO ៹◞✦'
-  const despedida = `┏╼★${textbot}
-┋「 Despedida 」
-┗╼★ 「 ${tag} 」
- ┋❖ ${byeMessage}
- ┋❀ Grupo: ${groupMetadata.subject}
- ┋❀ Quedan: ${totalMembers}
- ┗━━━━━━━━━━━━━━━┅ ⳹
-> ✐ Que tengas un buen viaje.`
+  const txt1 = '✦ ゲ◜៹ DESPEDIDA ៹◞ゲ ✦'
+    const bye = `
+╭━━━〔 ${textbot} 〕╮
+┃ ❖ ${tag}
+┃ ✦ *${despMessage}*
+┃
+┃ ✦ *Grupo:* ${groupMetadata.subject}
+┃ ✦ *Miembros:* ${totalMembers}
+╰━━━━━━━━━━━━━━━⳹
+🏮 ${global.dev}`
+
 
   await conn.sendMini(m.chat, txt, dev, despedida, img, img, redes, fkontak)
 }
