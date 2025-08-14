@@ -1,25 +1,32 @@
 let handler = async (m, { conn, args, usedPrefix, command }) => {
-const pp = await conn.profilePictureUrl(m.chat, 'image').catch(_ => icono) 
-let isClose = { // Switch Case Like :v
-'open': 'not_announcement',
-'close': 'announcement',
-'abierto': 'not_announcement',
-'cerrado': 'announcement',
-'abrir': 'not_announcement',
-'cerrar': 'announcement',
-}[(args[0] || '')]
-if (isClose === undefined)
-return conn.reply(m.chat, `${emoji} *Elija una opción para configurar el grupo*\n\nEjemplo:\n*✰ #${command} abrir*\n*✰ #${command} cerrar*\n*✰ #${command} close*\n*✰ #${command} open*`, m)
-await conn.groupSettingUpdate(m.chat, isClose)
+    const pp = await conn.profilePictureUrl(m.chat, 'image').catch(_ => icono) 
 
-if (isClose === 'not_announcement'){
-m.reply(`${emoji} *Ya pueden escribir en este grupo.*`)
+    // Determinar acción: open o close
+    let action = (args[0] || '').toLowerCase()
+    let setting
+
+    if (action === 'open') setting = 'not_announcement'
+    else if (action === 'close') setting = 'announcement'
+    else {
+        return conn.reply(
+            m.chat,
+            `${emoji} *Elija una opción válida para configurar el grupo*\n\nEjemplo:\n` +
+            `*✰ ${usedPrefix}${command} open* - Permitir que todos escriban\n` +
+            `*✰ ${usedPrefix}${command} close* - Solo admins pueden escribir`,
+            m
+        )
+    }
+
+    await conn.groupSettingUpdate(m.chat, setting)
+
+    if (setting === 'not_announcement') {
+        m.reply(`${emoji} *El grupo está abierto. Todos pueden escribir.*`)
+    } else if (setting === 'announcement') {
+        m.reply(`${emoji2} *El grupo está cerrado. Solo los administradores pueden escribir.*`)
+    }
 }
 
-if (isClose === 'announcement'){
-m.reply(`${emoji2} *Solos los admins pueden escribir en este grupo.*`)
-}}
-handler.help = ['group open / close', 'grupo abrir / cerrar']
+handler.help = ['group open / close']
 handler.tags = ['grupo']
 handler.command = ['group', 'grupo']
 handler.admin = true
