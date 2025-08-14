@@ -28,20 +28,9 @@ ${redes}
 `.trim()
 
 await conn.sendMessage(m.chat, { 
-  image: await (await fetch(banner)).buffer(), // Imagen grande
+  image: await (await fetch(banner)).buffer(),
   caption: txt,
-  contextInfo: {
-    mentionedJid: [userId],
-    externalAdReply: {                
-      title: botname,
-      body: textbot,
-      mediaType: 1,
-      mediaUrl: redes,
-      sourceUrl: redes,
-      showAdAttribution: false,
-      renderLargerThumbnail: true
-    }
-  }
+  mentions: [userId]
 }, { quoted: m })
 }
 
