@@ -1,52 +1,48 @@
-import fetch from 'node-fetch'
-
 let handler = async (m, { conn, args }) => {
-  let userId = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.sender
-  let user = global.db.data.users[userId]
-  let name = conn.getName(userId)
-  let _uptime = process.uptime() * 1000
-  let uptime = clockString(_uptime)
-  let totalreg = Object.keys(global.db.data.users).length
-  let totalCommands = Object.values(global.plugins).filter((v) => v.help && v.tags).length
+let userId = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.sender
+let user = global.db.data.users[userId]
+let name = conn.getName(userId)
+let _uptime = process.uptime() * 1000
+let uptime = clockString(_uptime)
+let totalreg = Object.keys(global.db.data.users).length
+let totalCommands = Object.values(global.plugins).filter((v) => v.help && v.tags).length
 
-  let txt = `
-*⌬━━━━▣━━◤◉‿◉◢━━▣━━━━━⌬*
+let txt = `⌬━━━━▣━━◤◉‿◉◢━━▣━━━━━⌬
 
 Hola *@${userId.split('@')[0]}* soy *${botname}*
 
 ╔══════⌬『 𝑰 𝑵 𝑭 𝑶 』
 ║ ✎ *Cliente:* @${userId.split('@')[0]}
-║ ✎ *Bot:* ${(conn.user.jid == global.conn.user.jid ? 'Principal 🅥' : 'Secundario 💅')}
+║ ✎ *Bot:* ${(conn.user.jid == global.conn.user.jid ? 'Principal 🅥' : 'Secundaria 💅')}
 ║ ✎ *Modo:* Público
 ║ ✎ *Usuarios »* ${totalreg}
 ║ ✎ *Tiempo Activo:* ${uptime}
 ║ ✎ *Comandos »* ${totalCommands}
 ╚══════ ♢.💥.♢ ══════➤
 
-*sɪɢᴜᴇ ᴇʟ ᴄᴀɴᴀʟ ᴏғɪᴄɪᴀʟ:*  
+*sɪɢᴜᴇ ᴇʟ ᴄᴀɴᴀʟ ᴏғɪᴄɪᴀʟ:*
 ${redes}
 
 ◤━━━━━ ☆. 🌀 .☆ ━━━━━◥
 ⚙ *𝑳𝑰𝑺𝑻𝑨 𝑫𝑬 𝑪𝑶𝑴𝑨𝑵𝑫𝑶𝑺*
 `.trim()
 
-  await conn.sendMessage(m.chat, { 
-    image: await (await fetch(banner)).buffer(), // Imagen grande
-    caption: txt, // Texto del menú
-    contextInfo: {
-      mentionedJid: [userId],
-      externalAdReply: {                
-        title: botname,
-        body: textbot,
-        mediaType: 1,
-        mediaUrl: redes,
-        sourceUrl: redes,
-        showAdAttribution: false,
-        containsAutoReply: true,
-        renderLargerThumbnail: true
-      }
+await conn.sendMessage(m.chat, { 
+  image: await (await fetch(banner)).buffer(), // Imagen grande
+  caption: txt,
+  contextInfo: {
+    mentionedJid: [userId],
+    externalAdReply: {                
+      title: botname,
+      body: textbot,
+      mediaType: 1,
+      mediaUrl: redes,
+      sourceUrl: redes,
+      showAdAttribution: false,
+      renderLargerThumbnail: true
     }
-  }, { quoted: m })
+  }
+}, { quoted: m })
 }
 
 handler.help = ['menu']
@@ -56,8 +52,8 @@ handler.command = ['menu', 'menú', 'help']
 export default handler
 
 function clockString(ms) {
-  let seconds = Math.floor((ms / 1000) % 60)
-  let minutes = Math.floor((ms / (1000 * 60)) % 60)
-  let hours = Math.floor((ms / (1000 * 60 * 60)) % 24)
-  return `${hours}h ${minutes}m ${seconds}s`
+let seconds = Math.floor((ms / 1000) % 60)
+let minutes = Math.floor((ms / (1000 * 60)) % 60)
+let hours = Math.floor((ms / (1000 * 60 * 60)) % 24)
+return `${hours}h ${minutes}m ${seconds}s`
 }
