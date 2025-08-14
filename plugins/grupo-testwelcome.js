@@ -28,16 +28,17 @@ img = await (await fetch(pp)).buffer()
 img = await (await fetch(defaultImage)).buffer()
 }
 
-const txt1 = '✦ ゲ◜៹ DESPEDIDA ៹◞ゲ ✦'
-    const bye = `
+const txt = '✦ ゲ◜៹ BIENVENIDA ៹◞ゲ ✦'
+    const bienvenida = `
 ╭━━━〔 ${textbot} 〕╮
-┃ ❖ ${tag}
-┃ ✦ *${despMessage}*
+┃ ✦ 𝑯𝒐𝒍𝒂 ${tag}
+┃ ❖ *${welcomeMessage}*
 ┃
 ┃ ✦ *Grupo:* ${groupMetadata.subject}
 ┃ ✦ *Miembros:* ${totalMembers}
-╰━━━━━━━━━━━━━━━⳹
-🏮 ${global.dev}`
+╰━━━━━━━━━━━━━⳹
+⚔ Usa *#profile* para ver tu ficha.`
+
 
 
 
