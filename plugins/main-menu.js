@@ -59,35 +59,3 @@ function clockString(ms) {
     let hours = Math.floor((ms / (1000 * 60 * 60)) % 24)
     return `${hours}h ${minutes}m ${seconds}s`
 }
-
-`.trim()
-
-await conn.sendMessage(m.chat, { 
-text: txt,
-contextInfo: {
-mentionedJid: [userId],
-externalAdReply: {                
-title: botname,
-body: textbot,
-mediaType: 1,
-mediaUrl: redes,
-sourceUrl: redes,
-thumbnail: await (await fetch(banner)).buffer(),
-showAdAttribution: false,
-containsAutoReply: true,
-renderLargerThumbnail: true
-}}}, { quoted: m })
-}
-
-handler.help = ['menu']
-handler.tags = ['main']
-handler.command = ['menu', 'menú', 'help']
-
-export default handler
-
-function clockString(ms) {
-let seconds = Math.floor((ms / 1000) % 60)
-let minutes = Math.floor((ms / (1000 * 60)) % 60)
-let hours = Math.floor((ms / (1000 * 60 * 60)) % 24)
-return `${hours}h ${minutes}m ${seconds}s`
-}
