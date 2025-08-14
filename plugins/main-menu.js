@@ -26,7 +26,7 @@ https://whatsapp.com/channel/0029Vb6LUgzJZg3yFilYpy1v
 ◤━━━━━ ☆. 🌀 .☆ ━━━━━◥
 ⚙ *𝑳𝑰𝑺𝑻𝑨 𝑫𝑬 𝑪𝑶𝑴𝑨𝑵𝑫𝑶𝑺*
 
-*┏━━━━▣━━⌬〘 BUSCADORES 🔍 〙*
+*┏━━▣━━⌬〘 BUSCADORES 🔍 〙*
 ∫➤ /tiktoksearch  
 ∫➤ /tiktoks  
 ∫➤ /tweetposts  
@@ -52,7 +52,7 @@ https://whatsapp.com/channel/0029Vb6LUgzJZg3yFilYpy1v
 ∫➤ /npmjs  
 *┗━━━▣━━⌬⌨⌬━━▣━━━━⌬*
 
-*┏━━━━▣━━⌬〘 GRUPO - ADMINS 🛡️ 〙*
+*┏━━▣━━⌬〘 GRUPO - ADMINS 🛡️ 〙*
 ∫➤ /hidetag  
 ∫➤ /tag  
 ∫➤ /gp  
@@ -107,7 +107,7 @@ https://whatsapp.com/channel/0029Vb6LUgzJZg3yFilYpy1v
 ∫➤ /kicknum  
 *┗━━━▣━━⌬⌨⌬━━▣━━━━⌬*
 
-*┏━━━━▣━━⌬〘 DESCARGAS 📥 〙*
+*┏━━▣━━⌬〘 DESCARGAS 📥 〙*
 ∫➤ /tiktok  
 ∫➤ /tt  
 ∫➤ /mediafire  
@@ -144,7 +144,7 @@ https://whatsapp.com/channel/0029Vb6LUgzJZg3yFilYpy1v
 ∫➤ /npmdownloader  
 *┗━━━▣━━⌬⌨⌬━━▣━━━━⌬*
 
-*┏━━━━▣━━⌬〘 ECONOMÍA 💰 〙*
+*┏━━▣━━⌬〘 ECONOMÍA 💰 〙*
 ∫➤ /w  
 ∫➤ /work  
 ∫➤ /trabajar  
@@ -207,7 +207,7 @@ https://whatsapp.com/channel/0029Vb6LUgzJZg3yFilYpy1v
 ∫➤ /navidad  
 *┗━━━▣━━⌬⌨⌬━━▣━━━━⌬*
 
-*┏━━━━▣━━⌬〘 GACHA 🎴 〙*
+*┏━━▣━━⌬〘 GACHA 🎴 〙*
 ∫➤ /rollwaifu  
 ∫➤ /rw  
 ∫➤ /roll  
@@ -233,7 +233,7 @@ https://whatsapp.com/channel/0029Vb6LUgzJZg3yFilYpy1v
 ∫➤ /topwaifus  
 *┗━━━▣━━⌬⌨⌬━━▣━━━━⌬*
 
-*┏━━━━▣━━⌬〘 STICKERS ✨ 〙*
+*┏━━▣━━⌬〘 STICKERS ✨ 〙*
 ∫➤ /sticker  
 ∫➤ /s  
 ∫➤ /setmeta  
@@ -250,7 +250,7 @@ https://whatsapp.com/channel/0029Vb6LUgzJZg3yFilYpy1v
 ∫➤ /wm  
 *┗━━━▣━━⌬⌨⌬━━▣━━━━⌬*
 
-*┏━━━━▣━━⌬〘 CONVERTIDORES ⚡ 〙*
+*┏━━▣━━⌬〘 CONVERTIDORES ⚡ 〙*
 ∫➤ /calcular  
 ∫➤ /cal  
 ∫➤ /tiempo  
@@ -280,7 +280,7 @@ https://whatsapp.com/channel/0029Vb6LUgzJZg3yFilYpy1v
 ∫➤ /trad  
 *┗━━━▣━━⌬⌨⌬━━▣━━━━⌬*
 
-*┏━━━━▣━━⌬〘 PERFÍL 📝 〙*
+*┏━━▣━━⌬〘 PERFÍL 📝 〙*
 ∫➤ /profile  
 ∫➤ /marry  
 ∫➤ /divorce  
@@ -302,7 +302,7 @@ https://whatsapp.com/channel/0029Vb6LUgzJZg3yFilYpy1v
 ∫➤ /confesar  
 *┗━━━▣━━⌬⌨⌬━━▣━━━━⌬*
 
-*┏━━━━▣━━⌬〘 ANIMÉ ✨ 〙*
+*┏━━▣━━⌬〘 ANIMÉ ✨ 〙*
 ∫➤ /angry  
 ∫➤ /enojado  
 ∫➤ /bite  
@@ -351,7 +351,7 @@ https://whatsapp.com/channel/0029Vb6LUgzJZg3yFilYpy1v
 ∫➤ /think  
 *┗━━━▣━━⌬⌨⌬━━▣━━━━⌬*
 
-*┏━━━━▣━━⌬〘 NSFW 🔥 〙*
+*┏━━▣━━⌬〘 NSFW 🔥 〙*
 ∫➤ /anal  
 ∫➤ /waifu  
 ∫➤ /bath  
@@ -387,7 +387,7 @@ https://whatsapp.com/channel/0029Vb6LUgzJZg3yFilYpy1v
 ∫➤ /tijeras  
 *┗━━━▣━━⌬⌨⌬━━▣━━━━⌬*
 
-*┏━━━━▣━━⌬〘 JUEGOS 🎮 〙*
+*┏━━▣━━⌬〘 JUEGOS 🎮 〙*
 ∫➤ /amistad  
 ∫➤ /amigorandom  
 ∫➤ /chaqueta  
