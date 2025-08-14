@@ -250,7 +250,7 @@ https://whatsapp.com/channel/0029Vb6LUgzJZg3yFilYpy1v
 ∫➤ /wm  
 *┗━━━▣━━⌬⌨⌬━━▣━━━━⌬*
 
-*┏━━▣━━⌬〘 CONVERTIDORES ⚡〙*
+*┏━▣━⌬〘 CONVERTIDORES ⚡〙*
 ∫➤ /calcular  
 ∫➤ /cal  
 ∫➤ /tiempo  
