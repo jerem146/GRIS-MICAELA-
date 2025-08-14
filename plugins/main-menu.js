@@ -14,7 +14,7 @@ Hola *@${userId.split('@')[0]}* soy *${botname}*
 ╔══════⌬『 𝑰 𝑵 𝑭 𝑶 』
 ║ ✎ *Cliente:* @${userId.split('@')[0]}
 ║ ✎ *Bot:* ${(conn.user.jid == global.conn.user.jid ? 'Principal 🅥' : 'Secundaria 💅')}
-║ ✎ *Modo:* Público
+║ ✎ *Modo:* Privado 
 ║ ✎ *Usuarios »* ${totalreg}
 ║ ✎ *Tiempo Activo:* ${uptime}
 ║ ✎ *Comandos »* ${totalCommands}
