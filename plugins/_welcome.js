@@ -42,13 +42,13 @@ export async function before(m, { conn, participants, groupMetadata }) {
   if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_ADD) {
     const txt = '✦ ゲ◜៹ BIENVENIDA ៹◞ゲ ✦'
     const bienvenida = `
-╭━━━〔 ${textbot} 〕━━━╮
+╭━━━〔 ${textbot} 〕╮
 ┃ ✦ 𝑯𝒐𝒍𝒂 ${taguser}
 ┃ ❖ ${welcomeMessage}
 ┃
 ┃ ✦ Grupo: ${groupMetadata.subject}
 ┃ ✦ Miembros: ${totalMembers}
-╰━━━━━━━━━━━━━━━⳹
+╰━━━━━━━━━━━━━⳹
 ⚔ Usa *#profile* para ver tu ficha.`
 
     await conn.sendMini(m.chat, txt, dev, bienvenida, img, img, redes, fkontak)
@@ -59,7 +59,7 @@ export async function before(m, { conn, participants, groupMetadata }) {
   ) {
     const txt1 = '✦ ゲ◜៹ DESPEDIDA ៹◞ゲ ✦'
     const bye = `
-╭━━━〔 ${textbot} 〕━━━╮
+╭━━━〔 ${textbot} ╮
 ┃ ❖ ${taguser}
 ┃ ✦ ${despMessage}
 ┃
