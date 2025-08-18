@@ -1,32 +1,60 @@
-/* 
-- tagall By Angel-OFC  
-- etiqueta en un grupo a todos
-- https://whatsapp.com/channel/0029VaJxgcB0bIdvuOwKTM2Y
-*/
-const handler = async (m, { isOwner, isAdmin, conn, text, participants, args, command, usedPrefix }) => {
-  if (usedPrefix == 'a' || usedPrefix == 'A') return;
-  const customEmoji = global.db.data.chats[m.chat]?.customEmoji || '';
-  m.react(customEmoji);
-  if (!(isAdmin || isOwner)) {
-    global.dfail('admin', m, conn);
-    throw false;
-  }
-  const pesan = args.join` `;
-  const botName = global.botname || 'BOT'; // Usa 'BOT' si no está definido
+const fs = require("fs");
+const path = require("path");
 
-  let teks = `*[ ! ] Invocando a los integrantes del grupo*\n\n*${botName}* *~> Invocador* : _@${m.sender.split('@')[0]}_\n*~> Mensaje* : _${pesan}_\n\n`;
-  teks += `╔═══ஜ۩۞۩ஜ═══╗\n`;
-  for (const mem of participants) {
-    teks += `╠➥ @${mem.id.split('@')[0]}\n`;
+const handler = async (msg, { conn, args }) => {
+  const rawID = conn.user?.id || "";
+  const subbotID = rawID.split(":")[0] + "@s.whatsapp.net";
+  const botNumber = rawID.split(":")[0].replace(/[^0-9]/g, "");
+
+  const prefixPath = path.resolve("prefixes.json");
+  let prefixes = {};
+  if (fs.existsSync(prefixPath)) {
+    prefixes = JSON.parse(fs.readFileSync(prefixPath, "utf-8"));
   }
-  teks += `╚═══════════`;
-  conn.sendMessage(m.chat, { text: teks, mentions: participants.map((a) => a.id) });
+  const usedPrefix = prefixes[subbotID] || ".";
+
+  const chatId = msg.key.remoteJid;
+  const senderJid = msg.key.participant || msg.key.remoteJid;
+  const senderNum = senderJid.replace(/[^0-9]/g, "");
+
+  if (!chatId.endsWith("@g.us")) {
+    return await conn.sendMessage(chatId, {
+      text: "⚠️ *Este comando solo se puede usar en grupos.*"
+    }, { quoted: msg });
+  }
+
+  const metadata = await conn.groupMetadata(chatId);
+  const participants = metadata.participants;
+
+  // Verificación de permisos
+  const participant = participants.find(p => p.id.includes(senderNum));
+  const isAdmin = participant?.admin === "admin" || participant?.admin === "superadmin";
+  const isBot = botNumber === senderNum;
+
+  if (!isAdmin && !isBot) {
+    return await conn.sendMessage(chatId, {
+      text: "❌ Solo los administradores del grupo o el subbot pueden usar este comando."
+    }, { quoted: msg });
+  }
+
+  const mentionList = participants.map(p => `➥ @${p.id.split("@")[0]}`).join("\n");
+  const extraMsg = args.join(" ");
+  let finalMsg = "━〔 *📢 INVOCACIÓN 📢* 〕━➫\n";
+  finalMsg += "٩(͡๏̯͡๏)۶ Por cortana 2.0 SubBot ٩(͡๏̯͡๏)۶\n";
+  if (extraMsg.trim().length > 0) {
+    finalMsg += `\n❑ Mensaje: ${extraMsg}\n\n`;
+  } else {
+    finalMsg += "\n";
+  }
+  finalMsg += mentionList;
+
+  const mentionIds = participants.map(p => p.id);
+
+  await conn.sendMessage(chatId, {
+    text: finalMsg,
+    mentions: mentionIds
+  }, { quoted: msg });
 };
 
-handler.help = ['todos *<mensaje opcional>*'];
-handler.tags = ['group'];
-handler.command = ['todos', 'invocar', 'tagall'];
-handler.admin = true;
-handler.group = true;
-
-export default handler;
+handler.command = ["tagall", "invocar", "todos"];
+module.exports = handler;
