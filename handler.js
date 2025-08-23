@@ -472,14 +472,16 @@ await plugin.after.call(this, m, extra)
 } catch (e) {
 console.error(e)
 }}
-if (m.coin)
-conn.reply(m.chat, `❮✦❯ Utilizaste ${+m.coin} ${moneda}`, m)
-}
-break
-
+// ... código previo del bucle
+    if (m.coin)
+        conn.reply(m.chat, `❮✦❯ Utilizaste ${+m.coin} ${moneda}`, m)
+    }
+    break
+} // <--- DEJA SOLO UNA LLAVE (la que cierra el "for")
 // handler.js -> REEMPLAZA TODO EL BLOQUE finally POR ESTE
 
-} catch (e) {
+} catch (e) { // <-- Ahora esto se conecta correctamente al "try" principal
+// ...
     console.error(e)
 } finally {
     if (opts['queque'] && m.text) {
