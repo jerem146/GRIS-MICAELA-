@@ -477,7 +477,7 @@ conn.reply(m.chat, `❮✦❯ Utilizaste ${+m.coin} ${moneda}`, m)
 }
 break
 }}
-// handler.js - REEMPLAZA ESTE BLOQUE COMPLETO
+// handler.js -> REEMPLAZA TODO EL BLOQUE finally POR ESTE
 
 } catch (e) {
     console.error(e)
@@ -488,25 +488,23 @@ break
             this.msgqueque.splice(quequeIndex, 1)
     }
 
-    let stats = global.db.data.stats;
     if (m) {
         let user = global.db.data.users[m.sender];
+        let stats = global.db.data.stats;
+
         // >>> INICIA LA LÓGICA DE MUTE CORREGIDA <<<
         if (user && user.muto === true) {
-            // Borrar el mensaje del usuario muteado SIEMPRE
-            let key = m.key;
-            await this.sendMessage(m.chat, { delete: key });
+            // Se usa "this" en lugar de "conn" en el handler
+            await this.sendMessage(m.chat, { delete: m.key });
 
-            // Solo advertir y expulsar en grupos si el bot es admin
             if (m.isGroup) {
                 const groupMetadata = await this.groupMetadata(m.chat).catch(_ => null) || {};
                 const participants = groupMetadata.participants || [];
                 const bot = participants.find(p => this.decodeJid(p.id) === this.decodeJid(this.user.jid));
-                const isBotAdmin = !!bot?.admin;
-
-                if (isBotAdmin) {
+                
+                if (bot?.admin) {
                     user.muteWarn = (user.muteWarn || 0) + 1;
-                    const warnThreshold = 3; // Límite de advertencias
+                    const warnThreshold = 3;
 
                     let mentionedUser = `@${m.sender.split('@')[0]}`;
 
@@ -527,53 +525,50 @@ break
         }
         // >>> FINALIZA LA LÓGICA DE MUTE <<<
 
-        if (m.sender && (user = global.db.data.users[m.sender])) {
-            user.exp += m.exp;
-            user.coin -= m.coin * 1;
+        if (user) {
+            user.exp += m.exp
+            user.coin -= m.coin * 1
         }
 
-        let stat;
         if (m.plugin) {
-            let now = +new Date;
+            let now = +new Date
             if (m.plugin in stats) {
-                stat = stats[m.plugin];
-                if (!isNumber(stat.total))
-                    stat.total = 1;
-                if (!isNumber(stat.success))
-                    stat.success = m.error != null ? 0 : 1;
-                if (!isNumber(stat.last))
-                    stat.last = now;
-                if (!isNumber(stat.lastSuccess))
-                    stat.lastSuccess = m.error != null ? 0 : now;
-            } else
-                stat = stats[m.plugin] = {
+                let stat = stats[m.plugin]
+                if (!isNumber(stat.total)) stat.total = 1
+                if (!isNumber(stat.success)) stat.success = m.error != null ? 0 : 1
+                if (!isNumber(stat.last)) stat.last = now
+                if (!isNumber(stat.lastSuccess)) stat.lastSuccess = m.error != null ? 0 : now
+                stat.total += 1
+                stat.last = now
+                if (m.error == null) {
+                    stat.success += 1
+                    stat.lastSuccess = now
+                }
+            } else {
+                stats[m.plugin] = {
                     total: 1,
                     success: m.error != null ? 0 : 1,
                     last: now,
                     lastSuccess: m.error != null ? 0 : now
-                };
-            stat.total += 1;
-            stat.last = now;
-            if (m.error == null) {
-                stat.success += 1;
-                stat.lastSuccess = now;
+                }
             }
-        } // <<< LA LLAVE FALTANTE ESTABA AQUÍ
+        }
     }
 
     try {
-        if (!opts['noprint']) await (await import(`./lib/print.js`)).default(m, this);
-    } catch (e) {
-        console.log(m, m.quoted, e);
+        if (!opts['noprint']) await (await import(`./lib/print.js`)).default(m, this)
+    } catch (e) { 
+        console.log(m, m.quoted, e)
     }
-    let settingsREAD = global.db.data.settings[this.user.jid] || {};
-    if (opts['autoread']) await this.readMessages([m.key]);
+    
+    let settingsREAD = global.db.data.settings[this.user.jid] || {}  
+    if (opts['autoread']) await this.readMessages([m.key])
 
     if (db.data.chats[m.chat].reaction && m.text.match(/(ción|dad|aje|oso|izar|mente|pero|tion|age|ous|ate|and|but|ify|ai|yuki|a|s)/gi)) {
-        let emot = pickRandom(["🍟", "😃", "😄", "😁", "😆", "🍓", "😅", "😂", "🤣", "🥲", "☺️", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "🌺", "🌸", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🌟", "🤓", "😎", "🥸", "🤩", "🥳", "😏", "💫", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣", "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠", "😡", "🤬", "🤯", "😳", "🥵", "🥶", "😶‍🌫️", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔", "🫣", "🤭", "🤖", "🍭", "🤫", "🫠", "🤥", "😶", "📇", "😐", "💧", "😑", "🫨", "😬", "🙄", "😯", "😦", "😧", "😮", "😲", "🥱", "😴", "🤤", "😪", "😮‍💨", "😵", "😵‍💫", "🤐", "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕", "🤑", "🤠", "😈", "👿", "👺", "🧿", "🌩", "👻", "😺", "😸", "😹", "😻", "😼", "😽", "🙀", "😿", "😾", "🫶", "👍", "✌️", "🙏", "🫵", "🤏", "🤌", "☝️", "🖕", "🙏", "🫵", "🫂", "🐱", "🤹‍♀️", "🤹‍♂️", "🗿", "✨", "⚡", "🔥", "🌈", "🩷", "❤️", "🧡", "💛", "💚", "🩵", "💙", "💜", "🖤", "🩶", "🤍", "🤎", "💔", "❤️‍🔥", "❤️‍🩹", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "🚩", "👊", "⚡️", "💋", "🫰", "💅", "👑", "🐣", "🐤", "🐈"]);
-        if (!m.fromMe) return this.sendMessage(m.chat, { react: { text: emot, key: m.key } });
+        let emot = pickRandom(["🍟", "😃", "😄", "😁", "😆", "🍓", "😅", "😂", "🤣", "🥲", "☺️", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "🌺", "🌸", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🌟", "🤓", "😎", "🥸", "🤩", "🥳", "😏", "💫", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣", "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠", "😡", "🤬", "🤯", "😳", "🥵", "🥶", "😶‍🌫️", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔", "🫣", "🤭", "🤖", "🍭", "🤫", "🫠", "🤥", "😶", "📇", "😐", "💧", "😑", "🫨", "😬", "🙄", "😯", "😦", "😧", "😮", "😲", "🥱", "😴", "🤤", "😪", "😮‍💨", "😵", "😵‍💫", "🤐", "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕", "🤑", "🤠", "😈", "👿", "👺", "🧿", "🌩", "👻", "😺", "😸", "😹", "😻", "😼", "😽", "🙀", "😿", "😾", "🫶", "👍", "✌️", "🙏", "🫵", "🤏", "🤌", "☝️", "🖕", "🙏", "🫵", "🫂", "🐱", "🤹‍♀️", "🤹‍♂️", "🗿", "✨", "⚡", "🔥", "🌈", "🩷", "❤️", "🧡", "💛", "💚", "🩵", "💙", "💜", "🖤", "🩶", "🤍", "🤎", "💔", "❤️‍🔥", "❤️‍🩹", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "🚩", "👊", "⚡️", "💋", "🫰", "💅", "👑", "🐣", "🐤", "🐈"])
+        if (!m.fromMe) return this.sendMessage(m.chat, { react: { text: emot, key: m.key }})
     }
-    function pickRandom(list) { return list[Math.floor(Math.random() * list.length)] }
+    function pickRandom(list) { return list[Math.floor(Math.random() * list.length)]}
 }
 
 global.dfail = (type, m, usedPrefix, command, conn) => {
