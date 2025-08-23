@@ -476,7 +476,7 @@ if (m.coin)
 conn.reply(m.chat, `❮✦❯ Utilizaste ${+m.coin} ${moneda}`, m)
 }
 break
-}}
+
 // handler.js -> REEMPLAZA TODO EL BLOQUE finally POR ESTE
 
 } catch (e) {
