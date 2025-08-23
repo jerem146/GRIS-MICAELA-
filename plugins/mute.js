@@ -1,3 +1,36 @@
+// mute.js
+const defaultImage = 'https://files.catbox.moe/ubftco.jpg'
+
+const handler = async (m, { conn, command, args, isAdmin }) => {
+  if (!m.isGroup) return m.reply('🔒 Solo funciona en grupos.')
+
+  if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = {}
+  const chat = global.db.data.chats[m.chat]
+
+  if (!chat.mutedUsers) chat.mutedUsers = {}
+
+  const mentioned = m.mentionedJid ? m.mentionedJid[0] : args[0]
+  if (!mentioned) return m.reply(`✳️ Menciona al usuario a mutear/desmutear.`)
+
+  if (!isAdmin) return m.reply('❌ Solo admins pueden mutear/desmutear usuarios.')
+
+  if (command === 'mute') {
+    chat.mutedUsers[mentioned] = { warnings: 0 }
+    return m.reply(`✅ El usuario @${mentioned.split('@')[0]} ha sido muteado.`, { mentions: [mentioned] })
+  }
+
+  if (command === 'unmute') {
+    delete chat.mutedUsers[mentioned]
+    return m.reply(`✅ Usuario desmuteado correctamente.`)
+  }
+}
+
+handler.command = ['mute', 'unmute']
+handler.group = true
+handler.tags = ['group']
+handler.help = ['mute @usuario', 'unmute @usuario']
+
+// --- Middleware para borrar mensajes ---
 handler.before = async (m, { conn }) => {
   if (!m.isGroup) return
   let chat = global.db.data.chats[m.chat]
@@ -7,36 +40,47 @@ handler.before = async (m, { conn }) => {
   let mutedUser = chat.mutedUsers[senderId]
 
   if (mutedUser) {
-    // 🟢 Borrar mensaje si el bot es admin
     try {
       let groupMetadata = await conn.groupMetadata(m.chat)
       let botNumber = conn.user.id.split(':')[0] + '@s.whatsapp.net'
       let botData = groupMetadata.participants.find(p => p.id === botNumber)
 
       if (botData?.admin) {
+        // Borrar mensaje
         await conn.sendMessage(m.chat, {
           delete: {
             remoteJid: m.chat,
-            fromMe: m.key.fromMe,
             id: m.key.id,
-            participant: m.key.participant || m.sender
+            participant: senderId
           }
+        })
+      } else {
+        // Simular borrado
+        await conn.sendMessage(m.chat, {
+          text: `❌ Mensaje de @${senderId.split('@')[0]} bloqueado (bot no es admin).`,
+          mentions: [senderId]
         })
       }
     } catch (e) {
-      console.error('Error al borrar mensaje:', e)
+      console.error('Error al intentar borrar:', e)
     }
 
-    // 🟠 Advertencias
+    // Sumar advertencias
     mutedUser.warnings = (mutedUser.warnings || 0) + 1
 
     if (mutedUser.warnings >= 3) {
-      // 🚨 Expulsar tras 3 advertencias
       await conn.sendMessage(m.chat, {
-        text: `🚫 El usuario @${senderId.split('@')[0]} fue eliminado por insistir en hablar estando muteado.`,
+        text: `🚫 El usuario @${senderId.split('@')[0]} fue eliminado por insistir en hablar muteado.`,
         mentions: [senderId]
       })
-      await conn.groupParticipantsUpdate(m.chat, [senderId], 'remove')
+      try {
+        await conn.groupParticipantsUpdate(m.chat, [senderId], 'remove')
+      } catch (e) {
+        await conn.sendMessage(m.chat, {
+          text: `⚠️ No pude eliminar a @${senderId.split('@')[0]} (bot no es admin).`,
+          mentions: [senderId]
+        })
+      }
       delete chat.mutedUsers[senderId]
     } else {
       await conn.sendMessage(m.chat, {
@@ -47,3 +91,5 @@ handler.before = async (m, { conn }) => {
     return true
   }
 }
+
+export default handler
