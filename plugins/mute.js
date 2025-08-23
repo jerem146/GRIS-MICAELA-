@@ -7,8 +7,19 @@ const handler = async (m, { conn, command, args, isAdmin }) => {
 
   if (!chat.mutedUsers) chat.mutedUsers = {}
 
-  const mentioned = m.mentionedJid ? m.mentionedJid[0] : args[0]
-  if (!mentioned) return m.reply('✳️ Debes mencionar al usuario a mutear/desmutear.')
+  // 🔹 Normalizar el JID del usuario
+  let mentioned
+  if (m.mentionedJid && m.mentionedJid.length > 0) {
+    mentioned = m.mentionedJid[0]
+  } else if (m.quoted) {
+    mentioned = m.quoted.sender
+  } else if (args[0]) {
+    mentioned = args[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net'
+  }
+
+  if (!mentioned || typeof mentioned !== 'string') {
+    return m.reply('✳️ Debes mencionar, responder o escribir el número del usuario.')
+  }
 
   if (!isAdmin) return m.reply('❌ Solo los admins pueden usar este comando.')
 
@@ -39,20 +50,20 @@ handler.before = async (m, { conn }) => {
   const mutedUser = chat.mutedUsers[senderId]
 
   if (mutedUser) {
-    // Intentar borrar mensaje si el bot es admin
     try {
+      // Intentar eliminar mensaje
       await conn.sendMessage(m.chat, {
         delete: {
           remoteJid: m.chat,
           id: m.key.id,
-          participant: m.key.participant || m.sender
+          participant: senderId
         }
       })
     } catch (e) {
-      console.log('⚠️ Error al borrar mensaje:', e)
+      console.log('⚠️ No pude borrar mensaje:', e.message)
     }
 
-    // Sumar advertencia
+    // Advertencias
     mutedUser.warnings = (mutedUser.warnings || 0) + 1
 
     if (mutedUser.warnings >= 3) {
