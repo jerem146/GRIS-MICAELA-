@@ -1,85 +1,50 @@
-const defaultImage = 'https://files.catbox.moe/ubftco.jpg'
+let handler = async (m, { conn, text, args, command, isAdmin, participants }) => {
+  if (!m.isGroup) return m.reply('🔒 Este comando solo funciona en grupos.')
+  if (!isAdmin) return m.reply('❌ Solo los administradores pueden usar este comando.')
 
-async function isAdminOrOwner(m, conn) {
-  try {
-    const groupMetadata = await conn.groupMetadata(m.chat)
-    const participant = groupMetadata.participants.find(p => p.id === m.sender)
-    return participant?.admin || m.fromMe
-  } catch {
-    return false
-  }
-}
+  let user = m.mentionedJid[0] || (args[0] ? args[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net' : null)
+  if (!user) return m.reply('✳️ Debes mencionar al usuario o poner su número.')
 
-const handler = async (m, { conn, command, args, isAdmin }) => {
-  if (!m.isGroup) return m.reply('🔒 Solo funciona en grupos.')
-
-  if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = {}
-  const chat = global.db.data.chats[m.chat]
-
-  if (!chat.mutedUsers) chat.mutedUsers = {}
-
-  const mentioned = m.mentionedJid ? m.mentionedJid[0] : args[0]
-  if (!mentioned) return m.reply('✳️ Menciona al usuario a mutear/desmutear.')
-
-  if (!isAdmin) return m.reply('❌ Solo admins pueden mutear/desmutear usuarios.')
+  let target = global.db.data.users[user]
+  if (!target) return m.reply('⚠️ Usuario no encontrado en la base de datos.')
 
   if (command === 'mute') {
-    chat.mutedUsers[mentioned] = { warnings: 0 }
-    return m.reply(`✅ Usuario muteado correctamente.`)
+    target.muto = true
+    target.warnMute = 0
+    m.reply(`✅ El usuario @${user.split('@')[0]} ha sido muteado.`, null, { mentions: [user] })
   }
 
   if (command === 'unmute') {
-    delete chat.mutedUsers[mentioned]
-    return m.reply(`✅ Usuario desmuteado correctamente.`)
+    target.muto = false
+    target.warnMute = 0
+    m.reply(`✅ El usuario @${user.split('@')[0]} ha sido desmuteado.`, null, { mentions: [user] })
   }
 }
 
-handler.command = ['mute', 'unmute']
+handler.command = /^mute|unmute$/i
 handler.group = true
-handler.register = false
-handler.tags = ['group']
-handler.help = ['mute @usuario', 'unmute @usuario']
+handler.admin = true
+export default handler
 
+// 🔹 Hook before: advierte y expulsa si sigue hablando muteado
 handler.before = async (m, { conn }) => {
   if (!m.isGroup) return
-  const chat = global.db.data.chats[m.chat]
-  if (!chat || !chat.mutedUsers) return
+  let user = global.db.data.users[m.sender]
+  if (!user?.muto) return
 
-  const senderId = m.key.participant || m.sender
-  const mutedUser = chat.mutedUsers[senderId]
+  // borrar mensaje
+  try {
+    await conn.sendMessage(m.chat, { delete: { remoteJid: m.chat, fromMe: false, id: m.key.id, participant: m.sender } })
+  } catch { }
 
-  if (mutedUser) {
-    try {
-      // Borrar mensaje si es posible
-      await conn.sendMessage(m.chat, {
-        delete: { remoteJid: m.chat, fromMe: false, id: m.key.id, participant: senderId }
-      })
-    } catch {
-      const userTag = `@${senderId.split('@')[0]}`
-      await conn.sendMessage(m.chat, {
-        text: `⚠️ No pude eliminar el mensaje de ${userTag}. Puede que me falten permisos.`,
-        mentions: [senderId]
-      })
-    }
+  user.warnMute = (user.warnMute || 0) + 1
 
-    // Sumar advertencia
-    mutedUser.warnings = (mutedUser.warnings || 0) + 1
-
-    if (mutedUser.warnings >= 3) {
-      await conn.sendMessage(m.chat, {
-        text: `🚫 El usuario @${senderId.split('@')[0]} fue eliminado por insistir en hablar muteado.`,
-        mentions: [senderId]
-      })
-      await conn.groupParticipantsUpdate(m.chat, [senderId], "remove")
-      delete chat.mutedUsers[senderId]
-    } else {
-      await conn.sendMessage(m.chat, {
-        text: `⚠️ @${senderId.split('@')[0]} estás muteado. Si sigues enviando mensajes serás eliminado (${mutedUser.warnings}/3).`,
-        mentions: [senderId]
-      })
-    }
-    return true
+  if (user.warnMute >= 3) {
+    await conn.sendMessage(m.chat, { text: `🚫 @${m.sender.split('@')[0]} fue eliminado por insistir en hablar muteado.`, mentions: [m.sender] })
+    await conn.groupParticipantsUpdate(m.chat, [m.sender], 'remove')
+    user.muto = false
+    user.warnMute = 0
+  } else {
+    await conn.sendMessage(m.chat, { text: `⚠️ @${m.sender.split('@')[0]} estás muteado. Advertencia ${user.warnMute}/3.`, mentions: [m.sender] })
   }
 }
-
-export default handler
