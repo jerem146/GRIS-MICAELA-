@@ -1,4 +1,4 @@
-/*import fetch from 'node-fetch'
+import fetch from 'node-fetch'
 import yts from 'yt-search'
 import fs from 'fs'
 import path from 'path'
@@ -133,4 +133,4 @@ handler.help = ['play', 'ytmp3', 'play2', 'ytmp4']
 handler.tags = ['downloader']
 handler.command = ['play', 'play2', 'ytmp3', 'ytmp4', 'ytv', 'mp4', 'playaudio', 'yta']
 
-export default handler*/
+export default handler
