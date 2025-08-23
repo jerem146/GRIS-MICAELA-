@@ -3,76 +3,89 @@ import yts from 'yt-search'
 import fs from 'fs'
 import path from 'path'
 
-// Expresión regular para extraer el ID de un video de YouTube desde varias URL.
 const ytIdRegex = /(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-
-// Función para limpiar y sanitizar nombres de archivo, eliminando caracteres no permitidos.
 const sanitizeFileName = (name = "") =>
   name.replace(/[<>:"/\\|?*\x00-\x1F]/g, "").trim().slice(0, 60);
 
 let handler = async (m, { conn, args, command, usedPrefix }) => {
-  // Si no se proporcionan argumentos (enlace o nombre), se envía un mensaje de uso.
   if (!args[0]) return m.reply(`✅ Uso correcto: ${usedPrefix + command} <enlace o nombre>`)
 
   try {
     let url = args[0]
     let videoInfo = null
 
-    // Si el argumento no es un enlace de YouTube, se realiza una búsqueda.
+    // Búsqueda si no es un enlace
     if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
       const search = await yts(args.join(' '))
-      if (!search.videos || search.videos.length === 0) return m.reply('No se encontraron resultados.')
+      if (!search.videos || search.videos.length === 0) return m.reply('❌ No se encontraron resultados para tu búsqueda.')
       videoInfo = search.videos[0]
       url = videoInfo.url
     } else {
-      // Si es un enlace, se extrae el ID y se busca la información del video.
       const idMatch = url.match(ytIdRegex)
       const id = idMatch ? idMatch[1] : null
+      if (!id) return m.reply('❌ No se pudo extraer un ID de video válido del enlace.')
       const search = await yts({ videoId: id })
-      if (!search || (!search.video && !search.title)) return m.reply('No se pudo obtener información del video.')
+      if (!search || (!search.video && !search.title)) return m.reply('❌ No se pudo obtener la información del video.')
       videoInfo = search.video ? search.video : search
       url = videoInfo.url || `https://youtu.be/${id}`
     }
 
-    // Se establece un límite de duración para los videos (63 minutos).
     if (videoInfo.seconds > 3780) return m.reply('⛔ El video supera el límite de duración permitido (63 minutos).')
 
     let apiUrl = ''
     let isAudio = false
 
-    // Se determina la URL de la API a usar según el comando (audio o video).
     if (['play', 'ytmp3', 'playaudio', 'yta'].includes(command.toLowerCase())) {
       apiUrl = `https://myapiadonix.vercel.app/api/ytmp3?url=${encodeURIComponent(url)}`
       isAudio = true
     } else if (['play2', 'ytmp4', 'ytv', 'mp4'].includes(command.toLowerCase())) {
-      // Aquí se utiliza la API para MP4 que solicitaste.
       apiUrl = `https://myapiadonix.vercel.app/api/ytmp4?url=${encodeURIComponent(url)}`
     } else {
       return m.reply('Comando no reconocido.')
     }
 
-    // Se intenta obtener el enlace de descarga desde la API principal.
+    await m.reply(`⏳ Procesando *${videoInfo.title}*... Por favor espera un momento.`)
+
+    // --- Intentar API principal ---
     let download = null
     let data = null
+    console.log(`[API Principal] Intentando con: ${apiUrl}`)
     try {
-      const res = await fetch(apiUrl, { timeout: 30000 })
+      const res = await fetch(apiUrl, { timeout: 45000 }) // Timeout aumentado
+      if (!res.ok) throw new Error(`La API principal respondió con un error: ${res.status} ${res.statusText}`)
+      
       const json = await res.json()
+      console.log('[API Principal] Respuesta JSON:', JSON.stringify(json, null, 2))
+
       data = json.data || {}
       download = data.download || data.url || (isAudio ? data.audio : data.video)
     } catch (e) {
-      console.error("Error con la API principal:", e)
+      console.error("[API Principal] Error:", e.message)
+      // No detenemos el flujo, permitimos que pase a la API de respaldo
     }
 
-    // Si la API principal falla, se intenta con una API de respaldo (fallback).
+    // --- Si falla, usar API de respaldo (fallback) ---
     if (!download) {
-      console.log("API principal falló, intentando con fallback...")
+      console.log("[Fallback] La API principal falló, intentando con API de respaldo.")
       const fallbackApi = `https://nightapi.is-a.dev/api/ytvideo?url=${encodeURIComponent(url)}`
-      const res2 = await fetch(fallbackApi)
-      const json2 = await res2.json()
-      data = json2
-      download = json2.url || null
-      if (!download) throw new Error('No se pudo obtener URL de descarga de ninguna API.')
+      console.log(`[Fallback] Intentando con: ${fallbackApi}`)
+      try {
+        const res2 = await fetch(fallbackApi)
+        if (!res2.ok) throw new Error(`La API de respaldo respondió con un error: ${res2.status} ${res2.statusText}`)
+        const json2 = await res2.json()
+        console.log('[Fallback] Respuesta JSON:', JSON.stringify(json2, null, 2))
+        data = json2
+        download = json2.url || null
+      } catch (e) {
+        console.error("[Fallback] Error:", e.message)
+      }
     }
+
+    if (!download) {
+      return m.reply('❌ Lo siento, ambas APIs fallaron al intentar obtener el enlace de descarga. Intenta con otro video o más tarde.')
+    }
+
+    console.log(`[Éxito] Enlace de descarga obtenido: ${download}`)
 
     const title = data.title || videoInfo.title || 'Sin título'
     const thumbnail = data.thumbnail || videoInfo.thumbnail || ''
@@ -80,7 +93,7 @@ let handler = async (m, { conn, args, command, usedPrefix }) => {
     const tipo = isAudio ? 'Audio' : 'Video'
     const safeTitle = sanitizeFileName(title)
 
-    // Se prepara y envía un mensaje informativo con la miniatura del video.
+    // --- Enviar mensaje informativo con miniatura ---
     const details = `
 📌 Título : *${title}*
 📁 Duración : *${duration}*
@@ -88,58 +101,43 @@ let handler = async (m, { conn, args, command, usedPrefix }) => {
 🌐 Fuente : *YouTube*
     `.trim()
 
-    let thumbBuffer = null
-    try {
-      if (thumbnail) {
-        const arrayBuffer = await (await fetch(thumbnail)).arrayBuffer()
-        thumbBuffer = Buffer.from(arrayBuffer)
-      }
-    } catch { thumbBuffer = null }
-
-    // Mensaje de vista previa con miniatura y detalles.
-    await conn.sendMessage(
-      m.chat,
-      {
+    await conn.sendMessage(m.chat, {
         text: details,
         contextInfo: {
           externalAdReply: {
             title: title,
-            body: '🎬 Descargando...',
+            body: '🎬 Descargando y enviando archivo...',
             thumbnailUrl: thumbnail,
             sourceUrl: url,
             mediaType: 1,
             renderLargerThumbnail: true
           }
         }
-      },
-      { quoted: m }
-    )
+      }, { quoted: m })
 
-    // Se envía el archivo (audio o video) al chat.
+    // --- Enviar archivo final ---
     if (isAudio) {
-      await conn.sendMessage(
-        m.chat,
-        { audio: { url: download }, mimetype: 'audio/mpeg', fileName: `${safeTitle}.mp3`, ptt: false },
-        { quoted: m }
-      )
+      await conn.sendMessage(m.chat, { 
+        audio: { url: download }, 
+        mimetype: 'audio/mpeg', 
+        fileName: `${safeTitle}.mp3` 
+      }, { quoted: m })
     } else {
-      const msg = {
-        video: { url: download },
-        mimetype: 'video/mp4',
-        fileName: `${safeTitle}.mp4`,
-        caption: `✧ Aquí tienes: ${title}`
-      }
-      if (thumbBuffer) msg.jpegThumbnail = thumbBuffer
-      await conn.sendMessage(m.chat, msg, { quoted: m })
+      await conn.sendMessage(m.chat, { 
+        video: { url: download }, 
+        mimetype: 'video/mp4', 
+        fileName: `${safeTitle}.mp4`, 
+        caption: `✧ Aquí tienes: ${title}` 
+      }, { quoted: m })
     }
 
   } catch (e) {
-    console.error("Error en el handler de descarga:", e)
-    m.reply('❌ Se produjo un error al procesar la solicitud. Por favor, intenta de nuevo.')
+    console.error("Error en handler de descarga:", e)
+    // ¡IMPORTANTE! Se responde al usuario con el error real para facilitar la depuración.
+    m.reply(`❌ Se produjo un error al procesar la solicitud:\n\n*${e.message}*`)
   }
 }
 
-// Se definen los comandos que activarán este handler.
 handler.help = ['play', 'ytmp3', 'play2', 'ytmp4']
 handler.tags = ['downloader']
 handler.command = ['play', 'play2', 'ytmp3', 'ytmp4', 'ytv', 'mp4', 'playaudio', 'yta']
