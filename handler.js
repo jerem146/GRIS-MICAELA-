@@ -486,11 +486,80 @@ if (quequeIndex !== -1)
 this.msgqueque.splice(quequeIndex, 1)
 }
 let user, stats = global.db.data.stats
-if (m) { let utente = global.db.data.users[m.sender]
-if (utente.muto == true) {
-let bang = m.key.id
-let cancellazzione = m.key.participant
-await conn.sendMessage(m.chat, { delete: { remoteJid: m.chat, fromMe: false, id: bang, participant: cancellazzione }})
+if (m) {
+    let user = global.db.data.users[m.sender];
+    // >>> INICIA LA NUEVA LÓGICA DE MUTE <<<
+    if (user && user.muto === true) {
+        // Primero, verificamos si el bot es admin para poder advertir y eliminar
+        const groupMetadata = m.isGroup ? await this.groupMetadata(m.chat).catch(_ => null) : {};
+        const participants = m.isGroup ? groupMetadata.participants : [];
+        const bot = m.isGroup ? participants.find(p => this.decodeJid(p.id) === this.decodeJid(this.user.jid)) : {};
+        const isBotAdmin = bot?.admin === 'admin' || bot?.admin === 'superadmin';
+
+        // 1. Borrar el mensaje del usuario muteado SIEMPRE
+        let key = m.key;
+        await this.sendMessage(m.chat, { delete: key });
+
+        if (m.isGroup && isBotAdmin) {
+            // 2. Inicializar o incrementar el contador de advertencias
+            user.muteWarn = (user.muteWarn || 0) + 1;
+            const warnThreshold = 3; // Límite de advertencias antes de expulsar
+
+            let mentionedUser = `@${m.sender.split('@')[0]}`;
+
+            if (user.muteWarn < warnThreshold) {
+                // 3. Enviar advertencia
+                const textWarn = `*${mentionedUser}, estás muteado y no puedes enviar mensajes.*\n\n> Advertencia ${user.muteWarn} de ${warnThreshold}.\n> Si continúas, serás eliminado del grupo.`;
+                await this.sendMessage(m.chat, { text: textWarn, mentions: [m.sender] });
+            } else {
+                // 4. Expulsar al usuario por alcanzar el límite
+                const textKick = `*${mentionedUser}* has ignorado las advertencias.\n\n> *Acción:* Eliminado del grupo.`;
+                await this.sendMessage(m.chat, { text: textKick, mentions: [m.sender] });
+                
+                // Expulsar al usuario
+                await this.groupParticipantsUpdate(m.chat, [m.sender], 'remove');
+
+                // Resetear su estado de mute para que no sea expulsado si lo vuelven a unir
+                user.muto = false;
+                user.muteWarn = 0;
+            }
+        }
+    }
+    // >>> FINALIZA LA NUEVA LÓGICA DE MUTE <<<
+    
+    // El resto de tu código original continúa aquí...
+    if (m.sender && (user = global.db.data.users[m.sender])) {
+        user.exp += m.exp;
+        user.coin -= m.coin * 1;
+    }
+
+    let stat;
+    if (m.plugin) {
+        let now = +new Date;
+        if (m.plugin in stats) {
+            stat = stats[m.plugin];
+            if (!isNumber(stat.total))
+                stat.total = 1;
+            if (!isNumber(stat.success))
+                stat.success = m.error != null ? 0 : 1;
+            if (!isNumber(stat.last))
+                stat.last = now;
+            if (!isNumber(stat.lastSuccess))
+                stat.lastSuccess = m.error != null ? 0 : now;
+        } else
+            stat = stats[m.plugin] = {
+                total: 1,
+                success: m.error != null ? 0 : 1,
+                last: now,
+                lastSuccess: m.error != null ? 0 : now
+            };
+        stat.total += 1;
+        stat.last = now;
+        if (m.error == null) {
+            stat.success += 1;
+            stat.lastSuccess = now;
+        }
+    }
 }
 if (m.sender && (user = global.db.data.users[m.sender])) {
 user.exp += m.exp
