@@ -6,22 +6,9 @@ let handler = async (m, { conn, text, args, command, isAdmin }) => {
   let user = m.mentionedJid[0] || (args[0] ? args[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net' : null)
   if (!user) return m.reply('✳️ Debes mencionar al usuario o poner su número.')
 
-  // Crear usuario si no existe en la base de datos
+  // Crear usuario si no existe
   if (!global.db.data.users[user]) {
-    global.db.data.users[user] = {
-      exp: 0,
-      coin: 10,
-      diamond: 3,
-      bank: 0,
-      level: 0,
-      role: 'Nuv',
-      muto: false,
-      warnMute: 0,
-      registered: false,
-      premium: false,
-      premiumTime: 0,
-      banned: false
-    }
+    global.db.data.users[user] = { muto: false, warnMute: 0 }
   }
 
   let target = global.db.data.users[user]
@@ -44,20 +31,27 @@ handler.group = true
 handler.admin = true
 export default handler
 
-// 🚨 Hook before: controlar mensajes de muteados
+// 🚨 Hook before: eliminar mensajes de muteados
 handler.before = async (m, { conn }) => {
   if (!m.isGroup) return
   let user = global.db.data.users[m.sender]
   if (!user?.muto) return
 
-  // Eliminar mensaje de muteado
+  // 🔥 Borrar mensaje del muteado
   try {
     await conn.sendMessage(m.chat, {
-      delete: { remoteJid: m.chat, fromMe: false, id: m.key.id, participant: m.sender }
+      delete: {
+        remoteJid: m.chat,
+        fromMe: m.key.fromMe || false,
+        id: m.key.id,
+        participant: m.key.participant || m.sender
+      }
     })
-  } catch { }
+  } catch (e) {
+    console.log('❌ Error al borrar mensaje:', e)
+  }
 
-  // Sumar advertencia
+  // Advertencias
   user.warnMute = (user.warnMute || 0) + 1
 
   if (user.warnMute >= 3) {
