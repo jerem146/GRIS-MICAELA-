@@ -1,7 +1,7 @@
 */import fetch from 'node-fetch'
 import yts from 'yt-search'
 import fs from 'fs'
-import path from 'path'
+import path from 'path'/*
 
 const ytIdRegex = /(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
 const sanitizeFileName = (name = "") =>
