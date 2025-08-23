@@ -1,6 +1,4 @@
 // mute.js
-const defaultImage = 'https://files.catbox.moe/ubftco.jpg'
-
 const handler = async (m, { conn, command, args, isAdmin }) => {
   if (!m.isGroup) return m.reply('🔒 Solo funciona en grupos.')
 
@@ -9,19 +7,31 @@ const handler = async (m, { conn, command, args, isAdmin }) => {
 
   if (!chat.mutedUsers) chat.mutedUsers = {}
 
-  const mentioned = m.mentionedJid ? m.mentionedJid[0] : args[0]
-  if (!mentioned) return m.reply(`✳️ Menciona al usuario a mutear/desmutear.`)
+  // ✅ Corregido: obtener el usuario mencionado o número
+  let mentioned = m.mentionedJid && m.mentionedJid[0] 
+    ? m.mentionedJid[0] 
+    : args[0] 
+      ? args[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net' 
+      : null
+
+  if (!mentioned) return m.reply(`✳️ Debes mencionar o escribir el número del usuario.`)
 
   if (!isAdmin) return m.reply('❌ Solo admins pueden mutear/desmutear usuarios.')
 
   if (command === 'mute') {
     chat.mutedUsers[mentioned] = { warnings: 0 }
-    return m.reply(`✅ El usuario @${mentioned.split('@')[0]} ha sido muteado.`, { mentions: [mentioned] })
+    return conn.sendMessage(m.chat, { 
+      text: `✅ El usuario @${mentioned.split('@')[0]} ha sido muteado.`,
+      mentions: [mentioned]
+    }, { quoted: m })
   }
 
   if (command === 'unmute') {
     delete chat.mutedUsers[mentioned]
-    return m.reply(`✅ Usuario desmuteado correctamente.`)
+    return conn.sendMessage(m.chat, { 
+      text: `✅ Usuario @${mentioned.split('@')[0]} ha sido desmuteado.`,
+      mentions: [mentioned]
+    }, { quoted: m })
   }
 }
 
@@ -46,7 +56,7 @@ handler.before = async (m, { conn }) => {
       let botData = groupMetadata.participants.find(p => p.id === botNumber)
 
       if (botData?.admin) {
-        // Borrar mensaje
+        // Borrar mensaje real
         await conn.sendMessage(m.chat, {
           delete: {
             remoteJid: m.chat,
@@ -55,7 +65,7 @@ handler.before = async (m, { conn }) => {
           }
         })
       } else {
-        // Simular borrado
+        // Avisar si no tiene permisos
         await conn.sendMessage(m.chat, {
           text: `❌ Mensaje de @${senderId.split('@')[0]} bloqueado (bot no es admin).`,
           mentions: [senderId]
@@ -65,7 +75,7 @@ handler.before = async (m, { conn }) => {
       console.error('Error al intentar borrar:', e)
     }
 
-    // Sumar advertencias
+    // Contar advertencias
     mutedUser.warnings = (mutedUser.warnings || 0) + 1
 
     if (mutedUser.warnings >= 3) {
