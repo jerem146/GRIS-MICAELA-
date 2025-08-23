@@ -374,7 +374,7 @@ if (name != 'grupo-unbanchat.js' && chat?.isBanned)
 return 
 if (name != 'owner-unbanuser.js' && user?.banned)
 return
-}}
+}
 
 let hl = _prefix 
 let adminMode = global.db.data.chats[m.chat].modoadmin
