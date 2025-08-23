@@ -1,71 +1,82 @@
-// grupo-mute.js
-let handler = async (m, { conn, text, args, command, isAdmin }) => {
+// plugins/grupo-mute.js
+
+let handler = async (m, { conn, command, args, isAdmin, participants }) => {
   if (!m.isGroup) return m.reply('🔒 Este comando solo funciona en grupos.')
-  if (!isAdmin) return m.reply('❌ Solo los administradores pueden usar este comando.')
 
-  let user = m.mentionedJid[0] || (args[0] ? args[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net' : null)
-  if (!user) return m.reply('✳️ Debes mencionar al usuario o poner su número.')
+  // Inicializar chat en la base de datos si no existe
+  let chat = global.db.data.chats[m.chat]
+  if (!chat) global.db.data.chats[m.chat] = {}
+  if (!chat.mutedUsers) chat.mutedUsers = {}
 
-  // Crear usuario si no existe
-  if (!global.db.data.users[user]) {
-    global.db.data.users[user] = { muto: false, warnMute: 0 }
+  // Sacar usuario mencionado
+  let mentioned = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : null
+  if (!mentioned && args[0]) {
+    if (args[0].includes('@')) {
+      mentioned = args[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net'
+    } else if (args[0].match(/^[0-9]+$/)) {
+      mentioned = args[0] + '@s.whatsapp.net'
+    }
   }
 
-  let target = global.db.data.users[user]
+  if (!mentioned) return m.reply('✳️ Debes mencionar o escribir el número del usuario.')
+
+  if (!isAdmin) return m.reply('❌ Solo los administradores pueden usar este comando.')
 
   if (command === 'mute') {
-    target.muto = true
-    target.warnMute = 0
-    m.reply(`✅ El usuario @${user.split('@')[0]} ha sido muteado.`, null, { mentions: [user] })
+    chat.mutedUsers[mentioned] = { warnings: 0 }
+    return m.reply(`✅ El usuario @${mentioned.split('@')[0]} ha sido muteado.`, null, { mentions: [mentioned] })
   }
 
   if (command === 'unmute') {
-    target.muto = false
-    target.warnMute = 0
-    m.reply(`✅ El usuario @${user.split('@')[0]} ha sido desmuteado.`, null, { mentions: [user] })
+    delete chat.mutedUsers[mentioned]
+    return m.reply(`✅ El usuario @${mentioned.split('@')[0]} ha sido desmuteado.`, null, { mentions: [mentioned] })
   }
 }
 
-handler.command = /^mute|unmute$/i
+handler.command = ['mute', 'unmute']
 handler.group = true
 handler.admin = true
 export default handler
 
-// 🚨 Hook before: eliminar mensajes de muteados
+// 🚨 Bloquear mensajes de muteados
 handler.before = async (m, { conn }) => {
   if (!m.isGroup) return
-  let user = global.db.data.users[m.sender]
-  if (!user?.muto) return
+  let chat = global.db.data.chats[m.chat]
+  if (!chat || !chat.mutedUsers) return
 
-  // 🔥 Borrar mensaje del muteado
-  try {
-    await conn.sendMessage(m.chat, {
-      delete: {
-        remoteJid: m.chat,
-        fromMe: m.key.fromMe || false,
-        id: m.key.id,
-        participant: m.key.participant || m.sender
-      }
-    })
-  } catch (e) {
-    console.log('❌ Error al borrar mensaje:', e)
-  }
+  let senderId = m.key.participant || m.sender
+  let mutedUser = chat.mutedUsers[senderId]
 
-  // Advertencias
-  user.warnMute = (user.warnMute || 0) + 1
+  if (mutedUser) {
+    // Intentar borrar mensaje
+    try {
+      await conn.sendMessage(m.chat, {
+        delete: {
+          remoteJid: m.chat,
+          fromMe: m.key.fromMe || false,
+          id: m.key.id,
+          participant: m.key.participant || m.sender
+        }
+      })
+    } catch { }
 
-  if (user.warnMute >= 3) {
-    await conn.sendMessage(m.chat, {
-      text: `🚫 @${m.sender.split('@')[0]} fue eliminado por insistir en hablar estando muteado.`,
-      mentions: [m.sender]
-    })
-    await conn.groupParticipantsUpdate(m.chat, [m.sender], 'remove')
-    user.muto = false
-    user.warnMute = 0
-  } else {
-    await conn.sendMessage(m.chat, {
-      text: `⚠️ @${m.sender.split('@')[0]} estás muteado. Advertencia ${user.warnMute}/3.`,
-      mentions: [m.sender]
-    })
+    // Sumar advertencia
+    mutedUser.warnings = (mutedUser.warnings || 0) + 1
+
+    if (mutedUser.warnings >= 3) {
+      // Expulsar al usuario tras 3 advertencias
+      await conn.sendMessage(m.chat, {
+        text: `🚫 El usuario @${senderId.split('@')[0]} fue eliminado por insistir en enviar mensajes estando muteado.`,
+        mentions: [senderId]
+      })
+      await conn.groupParticipantsUpdate(m.chat, [senderId], 'remove')
+      delete chat.mutedUsers[senderId]
+    } else {
+      await conn.sendMessage(m.chat, {
+        text: `⚠️ @${senderId.split('@')[0]} estás muteado. Si sigues enviando mensajes serás eliminado (${mutedUser.warnings}/3).`,
+        mentions: [senderId]
+      })
+    }
+    return true
   }
 }
