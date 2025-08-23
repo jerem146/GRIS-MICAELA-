@@ -492,27 +492,48 @@ this.msgqueque.splice(quequeIndex, 1)
 if (m) {
     let user = global.db.data.users[m.sender];
     
-    // --- INICIO DE LA LÓGICA CORREGIDA ---
+    // --- INICIO DE LA LÓGICA REVISADA Y MÁS SEGURA ---
     if (user && user.muto === true && m.isGroup) {
-        await this.sendMessage(m.chat, { delete: m.key });
+        console.log(`[Mute Handler] User ${m.sender.split('@')[0]} is muted. MuteWarn count: ${user.muteWarn}`);
 
+        // Primero, decidimos la acción (advertir o eliminar) y la ejecutamos.
         if (user.muteWarn < 1) {
-            user.muteWarn += 1;
-            // AÑADIMOS 'await' AQUI para asegurar que el mensaje se envíe antes de continuar.
-            await this.sendMessage(m.chat, { 
-                text: `*⚠️ ADVERTENCIA ⚠️*\n\n@${m.sender.split('@')[0]}, estás silenciado en este grupo. Si vuelves a enviar un mensaje, serás eliminado automáticamente.`, 
-                mentions: [m.sender] 
-            });
+            try {
+                console.log(`[Mute Handler] Sending warning to ${m.sender.split('@')[0]}`);
+                await this.sendMessage(m.chat, { 
+                    text: `*⚠️ ADVERTENCIA ⚠️*\n\n@${m.sender.split('@')[0]}, estás silenciado. Si vuelves a enviar un mensaje, serás eliminado automáticamente.`, 
+                    mentions: [m.sender] 
+                });
+                console.log(`[Mute Handler] Warning sent successfully.`);
+                user.muteWarn += 1; // Incrementar el contador DESPUÉS de enviar el mensaje
+            } catch (e) {
+                console.error('[Mute Handler] Failed to send warning message:', e);
+            }
         } else {
-            await this.sendMessage(m.chat, { 
-                text: `*🚫 ELIMINADO 🚫*\n\n@${m.sender.split('@')[0]} no respetó el silencio después de la advertencia y ha sido eliminado.`, 
-                mentions: [m.sender] 
-            });
-            await this.groupParticipantsUpdate(m.chat, [m.sender], 'remove');
-            user.muteWarn = 0;
+            try {
+                console.log(`[Mute Handler] Kicking user ${m.sender.split('@')[0]}`);
+                await this.sendMessage(m.chat, { 
+                    text: `*🚫 ELIMINADO 🚫*\n\n@${m.sender.split('@')[0]} no respetó el silencio después de la advertencia y ha sido eliminado.`, 
+                    mentions: [m.sender] 
+                });
+                await this.groupParticipantsUpdate(m.chat, [m.sender], 'remove');
+                console.log(`[Mute Handler] User kicked successfully.`);
+                user.muteWarn = 0; // Resetear el contador
+            } catch (e) {
+                console.error('[Mute Handler] Failed to kick user:', e);
+            }
+        }
+
+        // Finalmente, borrar el mensaje del usuario en todos los casos.
+        try {
+            console.log(`[Mute Handler] Deleting original message from ${m.sender.split('@')[0]}`);
+            await this.sendMessage(m.chat, { delete: m.key });
+            console.log(`[Mute Handler] Message deleted successfully.`);
+        } catch (e) {
+            console.error('[Mute Handler] Failed to delete message:', e);
         }
     }
-    // --- FIN DE LA LÓGICA CORREGIDA ---
+    // --- FIN DE LA LÓGICA REVISADA ---
 
     if (m.sender && user) {
         user.exp += m.exp;
@@ -554,7 +575,7 @@ let settingsREAD = global.db.data.settings[this.user.jid] || {}
 if (opts['autoread']) await this.readMessages([m.key])
 
 if (db.data.chats[m.chat].reaction && m.text.match(/(ción|dad|aje|oso|izar|mente|pero|tion|age|ous|ate|and|but|ify|ai|yuki|a|s)/gi)) {
-let emot = pickRandom(["🍟", "😃", "😄", "😁", "😆", "🍓", "😅", "😂", "🤣", "🥲", "☺️", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "🌺", "🌸", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🌟", "🤓", "😎", "🥸", "🤩", "🥳", "😏", "💫", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣", "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠", "😡", "🤬", "🤯", "😳", "🥵", "🥶", "😶‍🌫️", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔", "🫣", "🤭", "🤖", "🍭", "🤫", "🫠", "🤥", "😶", "📇", "😐", "💧", "😑", "🫨", "😬", "🙄", "😯", "😦", "😧", "😮", "😲", "🥱", "😴", "🤤", "😪", "😮‍💨", "😵", "😵‍💫", "🤐", "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕", "🤑", "🤠", "😈", "👿", "👺", "🧿", "🌩", "👻", "😺", "😸", "😹", "😻", "😼", "😽", "🙀", "😿", "😾", "🫶", "👍", "✌️", "🙏", "🫵", "🤏", "🤌", "☝️", "🖕", "🙏", "🫵", "🫂", "🐱", "🤹‍♀️", "🤹‍♂️", "🗿", "✨", "⚡", "🔥", "🌈", "🩷", "❤️", "🧡", "💛", "💚", "🩵", "💙", "💜", "🖤", "🩶", "🤍", "🤎", "💔", "❤️‍🔥", "❤️‍🩹", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "🚩", "👊", "⚡️", "💋", "🫰", "💅", "👑", "🐣", "🐤", "🐈"])
+let emot = pickRandom(["🍟", "😃", "😄", "😁", "😆", "🍓", "😅", "😂", "🤣", "🥲", "☺️", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "🌺", "🌸", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🌟", "🤓", "😎", "🥸", "🤩", "🥳", "😏", "💫", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣", "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠", "😡", "🤬", "🤯", "😳", "🥵", "🥶", "😶‍🌫️", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔", "🫣", "🤭", "🤖", "🍭", "🤫", "🫠", "🤥", "😶", "📇", "😐", "💧", "😑", "🫨", "😬", "🙄", "😯", "😦", "😧", "😮", "😲", "🥱", "😴", "🤤", "😪", "😮‍💨", "😵", "😵‍💫", "🤐", "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕", "🤑", "🤠", "😈", "👿", "👺", "🧿", "🌩", "👻", "😺", "😸", "😹", "😻", "😼", "😽", "🙀", "😿", "😾", "🫶", "👍", "✌️", "🙏", "🵠", "🤏", "🤌", "☝️", "🖕", "🙏", "🵠", "🫂", "🐱", "🤹‍♀️", "🤹‍♂️", "🗿", "✨", "⚡", "🔥", "🌈", "🩷", "❤️", "🧡", "💛", "💚", "🩵", "💙", "💜", "🖤", "🩶", "🤍", "🤎", "💔", "❤️‍🔥", "❤️‍🩹", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "🚩", "👊", "⚡️", "💋", "🫰", "💅", "👑", "🐣", "🐤", "🐈"])
 if (!m.fromMe) return this.sendMessage(m.chat, { react: { text: emot, key: m.key }})
 }
 function pickRandom(list) { return list[Math.floor(Math.random() * list.length)]}
