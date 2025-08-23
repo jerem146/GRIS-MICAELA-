@@ -67,7 +67,7 @@ if (!isNumber(user.lastmining))
 user.lastmining = 0
 if (!('muto' in user))
 user.muto = false
-if (!isNumber(user.muteWarn)) // Se añade para inicializar la advertencia de mute
+if (!isNumber(user.muteWarn))
 user.muteWarn = 0
 if (!('premium' in user))
 user.premium = false
@@ -126,7 +126,7 @@ lastpago: 0,
 lastmining: 0,
 lastcodereg: 0,
 muto: false,
-muteWarn: 0, // Se añade para inicializar la advertencia de mute para nuevos usuarios
+muteWarn: 0,
 registered: false,
 genre: '',
 birth: '',
@@ -492,25 +492,27 @@ this.msgqueque.splice(quequeIndex, 1)
 if (m) {
     let user = global.db.data.users[m.sender];
     
-    // --- INICIO DE LA LÓGICA MODIFICADA ---
-    // Si el usuario está muteado y es un grupo, se aplica la lógica de advertencia y expulsión.
+    // --- INICIO DE LA LÓGICA CORREGIDA ---
     if (user && user.muto === true && m.isGroup) {
-        // 1. Borrar siempre el mensaje del usuario muteado
         await this.sendMessage(m.chat, { delete: m.key });
 
-        // 2. Comprobar si ya ha sido advertido
         if (user.muteWarn < 1) {
-            // Si es la primera vez (muteWarn es 0), se le advierte
-            user.muteWarn += 1; // Incrementar el contador de advertencias
-            this.sendMessage(m.chat, { text: `*⚠️ ADVERTENCIA ⚠️*\n\n@${m.sender.split('@')[0]}, estás silenciado en este grupo. Si vuelves a enviar un mensaje, serás eliminado automáticamente.`, mentions: [m.sender] });
+            user.muteWarn += 1;
+            // AÑADIMOS 'await' AQUI para asegurar que el mensaje se envíe antes de continuar.
+            await this.sendMessage(m.chat, { 
+                text: `*⚠️ ADVERTENCIA ⚠️*\n\n@${m.sender.split('@')[0]}, estás silenciado en este grupo. Si vuelves a enviar un mensaje, serás eliminado automáticamente.`, 
+                mentions: [m.sender] 
+            });
         } else {
-            // Si ya fue advertido (muteWarn es 1 o más), se le elimina
-            this.sendMessage(m.chat, { text: `*🚫 ELIMINADO 🚫*\n\n@${m.sender.split('@')[0]} no respetó el silencio después de la advertencia y ha sido eliminado.`, mentions: [m.sender] });
+            await this.sendMessage(m.chat, { 
+                text: `*🚫 ELIMINADO 🚫*\n\n@${m.sender.split('@')[0]} no respetó el silencio después de la advertencia y ha sido eliminado.`, 
+                mentions: [m.sender] 
+            });
             await this.groupParticipantsUpdate(m.chat, [m.sender], 'remove');
-            user.muteWarn = 0; // Se resetea el contador por si vuelve en el futuro
+            user.muteWarn = 0;
         }
     }
-    // --- FIN DE LA LÓGICA MODIFICADA ---
+    // --- FIN DE LA LÓGICA CORREGIDA ---
 
     if (m.sender && user) {
         user.exp += m.exp;
