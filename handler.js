@@ -472,134 +472,134 @@ await plugin.after.call(this, m, extra)
 } catch (e) {
 console.error(e)
 }}
-// ... código previo del bucle
-    if (m.coin)
-        conn.reply(m.chat, `❮✦❯ Utilizaste ${+m.coin} ${moneda}`, m)
-    }
-    break
-} // <--- DEJA SOLO UNA LLAVE (la que cierra el "for")
-// handler.js -> REEMPLAZA TODO EL BLOQUE finally POR ESTE
-
-} catch (e) { // <-- Ahora esto se conecta correctamente al "try" principal
-// ...
-    console.error(e)
-} finally {
-    if (opts['queque'] && m.text) {
-        const quequeIndex = this.msgqueque.indexOf(m.id || m.key.id)
-        if (quequeIndex !== -1)
-            this.msgqueque.splice(quequeIndex, 1)
-    }
-
-    if (m) {
-        let user = global.db.data.users[m.sender];
-        let stats = global.db.data.stats;
-
-        // >>> INICIA LA LÓGICA DE MUTE CORREGIDA <<<
-        if (user && user.muto === true) {
-            // Se usa "this" en lugar de "conn" en el handler
-            await this.sendMessage(m.chat, { delete: m.key });
-
-            if (m.isGroup) {
-                const groupMetadata = await this.groupMetadata(m.chat).catch(_ => null) || {};
-                const participants = groupMetadata.participants || [];
-                const bot = participants.find(p => this.decodeJid(p.id) === this.decodeJid(this.user.jid));
-                
-                if (bot?.admin) {
-                    user.muteWarn = (user.muteWarn || 0) + 1;
-                    const warnThreshold = 3;
-
-                    let mentionedUser = `@${m.sender.split('@')[0]}`;
-
-                    if (user.muteWarn < warnThreshold) {
-                        const textWarn = `*${mentionedUser}, estás muteado y no puedes enviar mensajes.*\n\n> Advertencia ${user.muteWarn} de ${warnThreshold}.\n> Si continúas, serás eliminado del grupo.`;
-                        await this.sendMessage(m.chat, { text: textWarn, mentions: [m.sender] });
-                    } else {
-                        const textKick = `*${mentionedUser}* has ignorado las advertencias.\n\n> *Acción:* Eliminado del grupo.`;
-                        await this.sendMessage(m.chat, { text: textKick, mentions: [m.sender] });
-                        
-                        await this.groupParticipantsUpdate(m.chat, [m.sender], 'remove');
-
-                        user.muto = false;
-                        user.muteWarn = 0;
+// ... (dentro del bucle "for", justo después del bloque try/catch/finally del plugin)
+                            if (m.coin)
+                                conn.reply(m.chat, `❮✦❯ Utilizaste ${+m.coin} ${moneda}`, m)
+                        }
+                        break
+                    }
+                } // Cierre del bucle "for (let name in global.plugins)"
+            } catch (e) { // Cierre del "try" principal y apertura del "catch"
+                console.error(e)
+            } finally {
+                if (opts['queque'] && m.text) {
+                    const quequeIndex = this.msgqueque.indexOf(m.id || m.key.id)
+                    if (quequeIndex !== -1)
+                        this.msgqueque.splice(quequeIndex, 1)
+                }
+            
+                if (m) {
+                    let user = global.db.data.users[m.sender];
+                    let stats = global.db.data.stats;
+            
+                    // >>> INICIA LA LÓGICA DE MUTE CORREGIDA <<<
+                    if (user && user.muto === true) {
+                        // Se usa "this" en lugar de "conn" en el handler
+                        await this.sendMessage(m.chat, { delete: m.key });
+            
+                        if (m.isGroup) {
+                            const groupMetadata = await this.groupMetadata(m.chat).catch(_ => null) || {};
+                            const participants = groupMetadata.participants || [];
+                            const bot = participants.find(p => this.decodeJid(p.id) === this.decodeJid(this.user.jid));
+            
+                            if (bot?.admin) {
+                                user.muteWarn = (user.muteWarn || 0) + 1;
+                                const warnThreshold = 3;
+            
+                                let mentionedUser = `@${m.sender.split('@')[0]}`;
+            
+                                if (user.muteWarn < warnThreshold) {
+                                    const textWarn = `*${mentionedUser}, estás muteado y no puedes enviar mensajes.*\n\n> Advertencia ${user.muteWarn} de ${warnThreshold}.\n> Si continúas, serás eliminado del grupo.`;
+                                    await this.sendMessage(m.chat, { text: textWarn, mentions: [m.sender] });
+                                } else {
+                                    const textKick = `*${mentionedUser}* has ignorado las advertencias.\n\n> *Acción:* Eliminado del grupo.`;
+                                    await this.sendMessage(m.chat, { text: textKick, mentions: [m.sender] });
+            
+                                    await this.groupParticipantsUpdate(m.chat, [m.sender], 'remove');
+            
+                                    user.muto = false;
+                                    user.muteWarn = 0;
+                                }
+                            }
+                        }
+                    }
+                    // >>> FINALIZA LA LÓGICA DE MUTE <<<
+            
+                    if (user) {
+                        user.exp += m.exp
+                        user.coin -= m.coin * 1
+                    }
+            
+                    if (m.plugin) {
+                        let now = +new Date
+                        if (m.plugin in stats) {
+                            let stat = stats[m.plugin]
+                            if (!isNumber(stat.total)) stat.total = 1
+                            if (!isNumber(stat.success)) stat.success = m.error != null ? 0 : 1
+                            if (!isNumber(stat.last)) stat.last = now
+                            if (!isNumber(stat.lastSuccess)) stat.lastSuccess = m.error != null ? 0 : now
+                            stat.total += 1
+                            stat.last = now
+                            if (m.error == null) {
+                                stat.success += 1
+                                stat.lastSuccess = now
+                            }
+                        } else {
+                            stats[m.plugin] = {
+                                total: 1,
+                                success: m.error != null ? 0 : 1,
+                                last: now,
+                                lastSuccess: m.error != null ? 0 : now
+                            }
+                        }
                     }
                 }
-            }
-        }
-        // >>> FINALIZA LA LÓGICA DE MUTE <<<
-
-        if (user) {
-            user.exp += m.exp
-            user.coin -= m.coin * 1
-        }
-
-        if (m.plugin) {
-            let now = +new Date
-            if (m.plugin in stats) {
-                let stat = stats[m.plugin]
-                if (!isNumber(stat.total)) stat.total = 1
-                if (!isNumber(stat.success)) stat.success = m.error != null ? 0 : 1
-                if (!isNumber(stat.last)) stat.last = now
-                if (!isNumber(stat.lastSuccess)) stat.lastSuccess = m.error != null ? 0 : now
-                stat.total += 1
-                stat.last = now
-                if (m.error == null) {
-                    stat.success += 1
-                    stat.lastSuccess = now
+            
+                try {
+                    if (!opts['noprint']) await (await import(`./lib/print.js`)).default(m, this)
+                } catch (e) { 
+                    console.log(m, m.quoted, e)
                 }
-            } else {
-                stats[m.plugin] = {
-                    total: 1,
-                    success: m.error != null ? 0 : 1,
-                    last: now,
-                    lastSuccess: m.error != null ? 0 : now
+            
+                let settingsREAD = global.db.data.settings[this.user.jid] || {}  
+                if (opts['autoread']) await this.readMessages([m.key])
+            
+                if (db.data.chats[m.chat].reaction && m.text.match(/(ción|dad|aje|oso|izar|mente|pero|tion|age|ous|ate|and|but|ify|ai|yuki|a|s)/gi)) {
+                    let emot = pickRandom(["🍟", "😃", "😄", "😁", "😆", "🍓", "😅", "😂", "🤣", "🥲", "☺️", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "🌺", "🌸", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🌟", "🤓", "😎", "🥸", "🤩", "🥳", "😏", "💫", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣", "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠", "😡", "🤬", "🤯", "😳", "🥵", "🥶", "😶‍🌫️", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔", "🫣", "🤭", "🤖", "🍭", "🤫", "🫠", "🤥", "😶", "📇", "😐", "💧", "😑", "🫨", "😬", "🙄", "😯", "😦", "😧", "😮", "😲", "🥱", "😴", "🤤", "😪", "😮‍💨", "😵", "😵‍💫", "🤐", "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕", "🤑", "🤠", "😈", "👿", "👺", "🧿", "🌩", "👻", "😺", "😸", "😹", "😻", "😼", "😽", "🙀", "😿", "😾", "🫶", "👍", "✌️", "🙏", "🫵", "🤏", "🤌", "☝️", "🖕", "🙏", "🫵", "🫂", "🐱", "🤹‍♀️", "🤹‍♂️", "🗿", "✨", "⚡", "🔥", "🌈", "🩷", "❤️", "🧡", "💛", "💚", "🩵", "💙", "💜", "🖤", "🩶", "🤍", "🤎", "💔", "❤️‍🔥", "❤️‍🩹", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "🚩", "👊", "⚡️", "💋", "🫰", "💅", "👑", "🐣", "🐤", "🐈"])
+                    if (!m.fromMe) return this.sendMessage(m.chat, { react: { text: emot, key: m.key }})
                 }
+                function pickRandom(list) { return list[Math.floor(Math.random() * list.length)]}
             }
-        }
-    }
-
-    try {
-        if (!opts['noprint']) await (await import(`./lib/print.js`)).default(m, this)
-    } catch (e) { 
-        console.log(m, m.quoted, e)
-    }
-    
-    let settingsREAD = global.db.data.settings[this.user.jid] || {}  
-    if (opts['autoread']) await this.readMessages([m.key])
-
-    if (db.data.chats[m.chat].reaction && m.text.match(/(ción|dad|aje|oso|izar|mente|pero|tion|age|ous|ate|and|but|ify|ai|yuki|a|s)/gi)) {
-        let emot = pickRandom(["🍟", "😃", "😄", "😁", "😆", "🍓", "😅", "😂", "🤣", "🥲", "☺️", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "🌺", "🌸", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🌟", "🤓", "😎", "🥸", "🤩", "🥳", "😏", "💫", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣", "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠", "😡", "🤬", "🤯", "😳", "🥵", "🥶", "😶‍🌫️", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔", "🫣", "🤭", "🤖", "🍭", "🤫", "🫠", "🤥", "😶", "📇", "😐", "💧", "😑", "🫨", "😬", "🙄", "😯", "😦", "😧", "😮", "😲", "🥱", "😴", "🤤", "😪", "😮‍💨", "😵", "😵‍💫", "🤐", "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕", "🤑", "🤠", "😈", "👿", "👺", "🧿", "🌩", "👻", "😺", "😸", "😹", "😻", "😼", "😽", "🙀", "😿", "😾", "🫶", "👍", "✌️", "🙏", "🫵", "🤏", "🤌", "☝️", "🖕", "🙏", "🫵", "🫂", "🐱", "🤹‍♀️", "🤹‍♂️", "🗿", "✨", "⚡", "🔥", "🌈", "🩷", "❤️", "🧡", "💛", "💚", "🩵", "💙", "💜", "🖤", "🩶", "🤍", "🤎", "💔", "❤️‍🔥", "❤️‍🩹", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "🚩", "👊", "⚡️", "💋", "🫰", "💅", "👑", "🐣", "🐤", "🐈"])
-        if (!m.fromMe) return this.sendMessage(m.chat, { react: { text: emot, key: m.key }})
-    }
-    function pickRandom(list) { return list[Math.floor(Math.random() * list.length)]}
-}
-
-global.dfail = (type, m, usedPrefix, command, conn) => {
-
-let edadaleatoria = ['10', '28', '20', '40', '18', '21', '15', '11', '9', '17', '25'].getRandom()
-let user2 = m.pushName || 'Anónimo'
-let verifyaleatorio = ['registrar', 'reg', 'verificar', 'verify', 'register'].getRandom()
-
-const msg = {
-rowner: `『✦』El comando *${comando}* solo puede ser usado por los creadores del bot.`, 
-owner: `『✦』El comando *${comando}* solo puede ser usado por los desarrolladores del bot.`, 
-mods: `『✦』El comando *${comando}* solo puede ser usado por los moderadores del bot.`, 
-premium: `『✦』El comando *${comando}* solo puede ser usado por los usuarios premium.`, 
-group: `『✦』El comando *${comando}* solo puede ser usado en grupos.`,
-private: `『✦』El comando *${comando}* solo puede ser usado al chat privado del bot.`,
-admin: `『✦』El comando *${comando}* solo puede ser usado por los administradores del grupo.`, 
-botAdmin: `『✦』Para ejecutar el comando *${comando}* debo ser administrador del grupo.`,
-unreg: `『✦』El comando *${comando}* solo puede ser usado por los usuarios registrado, registrate usando:\n> » #${verifyaleatorio} ${user2}.${edadaleatoria}`,
-restrict: `『✦』Esta caracteristica está desactivada.`
-}[type];
-if (msg) return m.reply(msg).then(_ => m.react('✖️'))}
-
-let file = global.__filename(import.meta.url, true)
-watchFile(file, async () => {
-unwatchFile(file)
-console.log(chalk.magenta("Se actualizo 'handler.js'"))
-
-if (global.conns && global.conns.length > 0 ) {
-const users = [...new Set([...global.conns.filter((conn) => conn.user && conn.ws.socket && conn.ws.socket.readyState !== ws.CLOSED).map((conn) => conn)])]
-for (const userr of users) {
-userr.subreloadHandler(false)
-}}})
+            
+        } // Cierre de la función "export async function handler(chatUpdate)"
+        
+        global.dfail = (type, m, usedPrefix, command, conn) => {
+        
+        let edadaleatoria = ['10', '28', '20', '40', '18', '21', '15', '11', '9', '17', '25'].getRandom()
+        let user2 = m.pushName || 'Anónimo'
+        let verifyaleatorio = ['registrar', 'reg', 'verificar', 'verify', 'register'].getRandom()
+        
+        const msg = {
+        rowner: `『✦』El comando *${comando}* solo puede ser usado por los creadores del bot.`, 
+        owner: `『✦』El comando *${comando}* solo puede ser usado por los desarrolladores del bot.`, 
+        mods: `『✦』El comando *${comando}* solo puede ser usado por los moderadores del bot.`, 
+        premium: `『✦』El comando *${comando}* solo puede ser usado por los usuarios premium.`, 
+        group: `『✦』El comando *${comando}* solo puede ser usado en grupos.`,
+        private: `『✦』El comando *${comando}* solo puede ser usado al chat privado del bot.`,
+        admin: `『✦』El comando *${comando}* solo puede ser usado por los administradores del grupo.`, 
+        botAdmin: `『✦』Para ejecutar el comando *${comando}* debo ser administrador del grupo.`,
+        unreg: `『✦』El comando *${comando}* solo puede ser usado por los usuarios registrado, registrate usando:\n> » #${verifyaleatorio} ${user2}.${edadaleatoria}`,
+        restrict: `『✦』Esta caracteristica está desactivada.`
+        }[type];
+        if (msg) return m.reply(msg).then(_ => m.react('✖️'))}
+        
+        let file = global.__filename(import.meta.url, true)
+        watchFile(file, async () => {
+        unwatchFile(file)
+        console.log(chalk.magenta("Se actualizo 'handler.js'"))
+        
+        if (global.conns && global.conns.length > 0 ) {
+        const users = [...new Set([...global.conns.filter((conn) => conn.user && conn.ws.socket && conn.ws.socket.readyState !== ws.CLOSED).map((conn) => conn)])]
+        for (const userr of users) {
+        userr.subreloadHandler(false)
+        }}})
