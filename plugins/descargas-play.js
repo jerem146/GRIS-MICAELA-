@@ -1,145 +1,94 @@
-import fetch from 'node-fetch'
+import fetch from "node-fetch"
 import yts from 'yt-search'
-import fs from 'fs'
-import path from 'path'
+import axios from "axios"
+const youtubeRegexID = /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]{11})/
 
-const ytIdRegex = /(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-const sanitizeFileName = (name = "") =>
-  name.replace(/[<>:"/\\|?*\x00-\x1F]/g, "").trim().slice(0, 60);
-
-let handler = async (m, { conn, args, command, usedPrefix }) => {
-  if (!args[0]) return m.reply(`✅ Uso correcto: ${usedPrefix + command} <enlace o nombre>`)
-
+const handler = async (m, { conn, text, usedPrefix, command }) => {
   try {
-    let url = args[0]
-    let videoInfo = null
-
-    // Búsqueda si no es un enlace
-    if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
-      const search = await yts(args.join(' '))
-      if (!search.videos || search.videos.length === 0) return m.reply('❌ No se encontraron resultados para tu búsqueda.')
-      videoInfo = search.videos[0]
-      url = videoInfo.url
-    } else {
-      const idMatch = url.match(ytIdRegex)
-      const id = idMatch ? idMatch[1] : null
-      if (!id) return m.reply('❌ No se pudo extraer un ID de video válido del enlace.')
-      const search = await yts({ videoId: id })
-      if (!search || (!search.video && !search.title)) return m.reply('❌ No se pudo obtener la información del video.')
-      videoInfo = search.video ? search.video : search
-      url = videoInfo.url || `https://youtu.be/${id}`
+    if (!text.trim()) {
+      return conn.reply(m.chat, `❀ Por favor, ingresa el nombre de la música a descargar.`, m)
     }
 
-    if (videoInfo.seconds > 3780) return m.reply('⛔ El video supera el límite de duración permitido (63 minutos).')
+let videoIdToFind = text.match(youtubeRegexID) || null
+let ytplay2 = await yts(videoIdToFind === null ? text : 'https://youtu.be/' + videoIdToFind[1])
 
-    let apiUrl = ''
-    let isAudio = false
-
-    if (['play', 'ytmp3', 'playaudio', 'yta'].includes(command.toLowerCase())) {
-      apiUrl = `https://myapiadonix.vercel.app/api/ytmp3?url=${encodeURIComponent(url)}`
-      isAudio = true
-    } else if (['play2', 'ytmp4', 'ytv', 'mp4'].includes(command.toLowerCase())) {
-      apiUrl = `https://myapiadonix.vercel.app/api/ytmp4?url=${encodeURIComponent(url)}`
-    } else {
-      return m.reply('Comando no reconocido.')
+if (videoIdToFind) {
+const videoId = videoIdToFind[1]  
+ytplay2 = ytplay2.all.find(item => item.videoId === videoId) || ytplay2.videos.find(item => item.videoId === videoId)
+} 
+ytplay2 = ytplay2.all?.[0] || ytplay2.videos?.[0] || ytplay2  
+if (!ytplay2 || ytplay2.length == 0) {
+return m.reply('✧ No se encontraron resultados para tu búsqueda.')
+}
+let { title, thumbnail, timestamp, views, ago, url, author } = ytplay2
+title = title || 'no encontrado'
+thumbnail = thumbnail || 'no encontrado'
+timestamp = timestamp || 'no encontrado'
+views = views || 'no encontrado'
+ago = ago || 'no encontrado'
+url = url || 'no encontrado'
+author = author || 'no encontrado'
+    const vistas = formatViews(views)
+    const canal = author.name ? author.name : 'Desconocido'
+    const infoMessage = `「✦」Descargando *<${title || 'Desconocido'}>*\n\n> ✧ Canal » *${canal}*\n> ✰ Vistas » *${vistas || 'Desconocido'}*\n> ⴵ Duración » *${timestamp || 'Desconocido'}*\n> ✐ Publicado » *${ago || 'Desconocido'}*\n> 🜸 Link » ${url}`
+    const thumb = (await conn.getFile(thumbnail))?.data
+    const JT = {
+      contextInfo: {
+        externalAdReply: {
+          title: botname,
+          body: dev,
+          mediaType: 1,
+          previewType: 0,
+          mediaUrl: url,
+          sourceUrl: url,
+          thumbnail: thumb,
+          renderLargerThumbnail: true,
+        },
+      },
     }
-
-    await m.reply(`⏳ Procesando *${videoInfo.title}*... Por favor espera un momento.`)
-
-    // --- Intentar API principal ---
-    let download = null
-    let data = null
-    console.log(`[API Principal] Intentando con: ${apiUrl}`)
-    try {
-      const res = await fetch(apiUrl, { timeout: 45000 }) // Timeout aumentado
-      if (!res.ok) throw new Error(`La API principal respondió con un error: ${res.status} ${res.statusText}`)
-      
-      const json = await res.json()
-      console.log('[API Principal] Respuesta JSON:', JSON.stringify(json, null, 2))
-
-      data = json.data || {}
-      download = data.download || data.url || (isAudio ? data.audio : data.video)
-    } catch (e) {
-      console.error("[API Principal] Error:", e.message)
-      // No detenemos el flujo, permitimos que pase a la API de respaldo
-    }
-
-    // --- Si falla, usar API de respaldo (fallback) ---
-    if (!download) {
-      console.log("[Fallback] La API principal falló, intentando con API de respaldo.")
-      const fallbackApi = `https://nightapi.is-a.dev/api/ytvideo?url=${encodeURIComponent(url)}`
-      console.log(`[Fallback] Intentando con: ${fallbackApi}`)
+    await conn.reply(m.chat, infoMessage, m, JT)    
+    if (command === 'play' || command === 'yta' || command === 'ytmp3' || command === 'playaudio') {
       try {
-        const res2 = await fetch(fallbackApi)
-        if (!res2.ok) throw new Error(`La API de respaldo respondió con un error: ${res2.status} ${res2.statusText}`)
-        const json2 = await res2.json()
-        console.log('[Fallback] Respuesta JSON:', JSON.stringify(json2, null, 2))
-        data = json2
-        download = json2.url || null
+        const api = await (await fetch(`https://api.vreden.my.id/api/ytmp3?url=${url}`)).json()
+        const resulta = api.result
+        const result = resulta.download.url    
+        if (!result) throw new Error('⚠ El enlace de audio no se generó correctamente.')
+        await conn.sendMessage(m.chat, { audio: { url: result }, fileName: `${api.result.title}.mp3`, mimetype: 'audio/mpeg' }, { quoted: m })
       } catch (e) {
-        console.error("[Fallback] Error:", e.message)
+        return conn.reply(m.chat, '⚠︎ No se pudo enviar el audio. Esto puede deberse a que el archivo es demasiado pesado o a un error en la generación de la URL. Por favor, intenta nuevamente más tarde.', m)
       }
-    }
-
-    if (!download) {
-      return m.reply('❌ Lo siento, ambas APIs fallaron al intentar obtener el enlace de descarga. Intenta con otro video o más tarde.')
-    }
-
-    console.log(`[Éxito] Enlace de descarga obtenido: ${download}`)
-
-    const title = data.title || videoInfo.title || 'Sin título'
-    const thumbnail = data.thumbnail || videoInfo.thumbnail || ''
-    const duration = videoInfo.timestamp || 'Desconocida'
-    const tipo = isAudio ? 'Audio' : 'Video'
-    const safeTitle = sanitizeFileName(title)
-
-    // --- Enviar mensaje informativo con miniatura ---
-    const details = `
-📌 Título : *${title}*
-📁 Duración : *${duration}*
-🎧 Tipo : *${tipo}*
-🌐 Fuente : *YouTube*
-    `.trim()
-
-    await conn.sendMessage(m.chat, {
-        text: details,
-        contextInfo: {
-          externalAdReply: {
-            title: title,
-            body: '🎬 Descargando y enviando archivo...',
-            thumbnailUrl: thumbnail,
-            sourceUrl: url,
-            mediaType: 1,
-            renderLargerThumbnail: true
-          }
-        }
-      }, { quoted: m })
-
-    // --- Enviar archivo final ---
-    if (isAudio) {
-      await conn.sendMessage(m.chat, { 
-        audio: { url: download }, 
-        mimetype: 'audio/mpeg', 
-        fileName: `${safeTitle}.mp3` 
-      }, { quoted: m })
+    } else if (command === 'play2' || command === 'ytv' || command === 'ytmp4' || command === 'mp4') {
+      try {
+        const response = await fetch(`https://api.neoxr.eu/api/youtube?url=${url}&type=video&quality=480p&apikey=GataDios`)
+        const json = await response.json()
+        await conn.sendFile(m.chat, json.data.url, json.title + '.mp4', title, m)
+      } catch (e) {
+        return conn.reply(m.chat, '⚠︎ No se pudo enviar el video. Esto puede deberse a que el archivo es demasiado pesado o a un error en la generación de la URL. Por favor, intenta nuevamente más tarde.', m)
+      }
     } else {
-      await conn.sendMessage(m.chat, { 
-        video: { url: download }, 
-        mimetype: 'video/mp4', 
-        fileName: `${safeTitle}.mp4`, 
-        caption: `✧ Aquí tienes: ${title}` 
-      }, { quoted: m })
+      return conn.reply(m.chat, '✧︎ Comando no reconocido.', m)
     }
-
-  } catch (e) {
-    console.error("Error en handler de descarga:", e)
-    // ¡IMPORTANTE! Se responde al usuario con el error real para facilitar la depuración.
-    m.reply(`❌ Se produjo un error al procesar la solicitud:\n\n*${e.message}*`)
+  } catch (error) {
+    return m.reply(`⚠︎ Ocurrió un error: ${error}`)
   }
 }
-
-handler.help = ['play', 'ytmp3', 'play2', 'ytmp4']
-handler.tags = ['downloader']
-handler.command = ['play', 'play2', 'ytmp3', 'ytmp4', 'ytv', 'mp4', 'playaudio', 'yta']
+handler.command = handler.help = ['play', 'yta', 'ytmp3', 'play2', 'ytv', 'ytmp4', 'playaudio', 'mp4']
+handler.tags = ['descargas']
+handler.group = true
 
 export default handler
+
+function formatViews(views) {
+  if (views === undefined) {
+    return "No disponible"
+  }
+
+  if (views >= 1_000_000_000) {
+    return `${(views / 1_000_000_000).toFixed(1)}B (${views.toLocaleString()})`
+  } else if (views >= 1_000_000) {
+    return `${(views / 1_000_000).toFixed(1)}M (${views.toLocaleString()})`
+  } else if (views >= 1_000) {
+    return `${(views / 1_000).toFixed(1)}k (${views.toLocaleString()})`
+  }
+  return views.toString()
+}
