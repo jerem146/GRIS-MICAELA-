@@ -233,7 +233,7 @@ let _user = global.db.data && global.db.data.users && global.db.data.users[m.sen
 const detectwhat = m.sender.includes('@lid') ? '@lid' : '@s.whatsapp.net';
 const isROwner = [...global.owner.map(([number]) => number)].map(v => v.replace(/[^0-9]/g, '') + detectwhat).includes(m.sender)
 const isOwner = isROwner || m.fromMe
-const isMods = isROwner || global.mods.map(v => v.replace(/[^0-9]/g, '') + detectwhat).includes(m.sender)
+const isMods = isROwner || global.mods.map(v => v.replace(/[^0--9]/g, '') + detectwhat).includes(m.sender)
 const isPrems = isROwner || global.prems.map(v => v.replace(/[^0-9]/g, '') + detectwhat).includes(m.sender) || (_user && _user.premium)
 
 if (m.isBaileys) return
@@ -491,55 +491,52 @@ this.msgqueque.splice(quequeIndex, 1)
 
 if (m) {
     let user = global.db.data.users[m.sender];
-    
-    // --- INICIO DE LA LÓGICA REVISADA Y MÁS SEGURA ---
-    if (user && user.muto === true && m.isGroup) {
-        console.log(`[Mute Handler] User ${m.sender.split('@')[0]} is muted. MuteWarn count: ${user.muteWarn}`);
 
-        // Primero, decidimos la acción (advertir o eliminar) y la ejecutamos.
-        if (user.muteWarn < 3) {
+    // --- INICIO DE LA NUEVA LÓGICA DE MUTEO ---
+    if (user && user.muto === true && m.isGroup && !m.isBaileys) {
+        // 1. Siempre eliminamos el mensaje del usuario muteado
+        try {
+            await this.sendMessage(m.chat, { delete: m.key });
+        } catch (e) {
+            console.error(`[Mute Handler] Error al eliminar mensaje: ${e}`);
+        }
+
+        // 2. Verificamos el contador para decidir la siguiente acción
+        if (user.muteWarn === 2) {
+            // Este es el 3er mensaje. Enviamos la advertencia.
             try {
-                console.log(`[Mute Handler] Sending warning to ${m.sender.split('@')[0]}`);
                 await this.sendMessage(m.chat, { 
                     text: `*⚠️ ADVERTENCIA ⚠️*\n\n@${m.sender.split('@')[0]}, estás silenciado. Si vuelves a enviar un mensaje, serás eliminado automáticamente.`, 
                     mentions: [m.sender] 
                 });
-                console.log(`[Mute Handler] Warning sent successfully.`);
-                user.muteWarn += 1; // Incrementar el contador DESPUÉS de enviar el mensaje
+                user.muteWarn += 1; // Incrementamos el contador a 3
             } catch (e) {
-                console.error('[Mute Handler] Failed to send warning message:', e);
+                console.error(`[Mute Handler] Error al enviar advertencia: ${e}`);
             }
-        } else {
-            try {
-                console.log(`[Mute Handler] Kicking user ${m.sender.split('@')[0]}`);
-                await this.sendMessage(m.chat, { 
-                    text: `*🚫 ELIMINADO 🚫*\n\n@${m.sender.split('@')[0]} no respetó el silencio después de la advertencia y ha sido eliminado.`, 
-                    mentions: [m.sender] 
-                });
-                await this.groupParticipantsUpdate(m.chat, [m.sender], 'remove');
-                console.log(`[Mute Handler] User kicked successfully.`);
-                user.muteWarn = 0; // Resetear el contador
-            } catch (e) {
-                console.error('[Mute Handler] Failed to kick user:', e);
-            }
-        }
 
-        // Finalmente, borrar el mensaje del usuario en todos los casos.
-        try {
-            console.log(`[Mute Handler] Deleting original message from ${m.sender.split('@')[0]}`);
-            await this.sendMessage(m.chat, { delete: m.key });
-            console.log(`[Mute Handler] Message deleted successfully.`);
-        } catch (e) {
-            console.error('[Mute Handler] Failed to delete message:', e);
+        } else if (user.muteWarn >= 3) {
+            // Este es el 4to mensaje (o más). Eliminamos al usuario.
+            try {
+                await this.groupParticipantsUpdate(m.chat, [m.sender], 'remove');
+            } catch (e) {
+                console.error(`[Mute Handler] Error al eliminar al participante: ${e}`);
+            }
+            // Importante: Reseteamos el contador y el estado de muteo
+            user.muteWarn = 0;
+            user.muto = false;
+
+        } else {
+            // Este es el 1er o 2do mensaje. Solo incrementamos el contador silenciosamente.
+            user.muteWarn += 1;
         }
     }
-    // --- FIN DE LA LÓGICA REVISADA ---
+    // --- FIN DE LA NUEVA LÓGICA DE MUTEO ---
 
-    if (m.sender && user) {
+    if (m.sender && user && user.muto === false) { // Aseguramos que no gane exp/coin mientras está muteado
         user.exp += m.exp;
         user.coin -= m.coin * 1;
     }
-    
+
     let stats = global.db.data.stats;
     let stat;
     if (m.plugin) {
