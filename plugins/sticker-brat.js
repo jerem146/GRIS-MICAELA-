@@ -2,7 +2,10 @@ import { sticker } from '../lib/sticker.js'
 import axios from 'axios'
 
 const bratMaker = async (text) => {
-  const url = `https://fakeimg.pl/512x512/8ACE00/000000/?font=impact&font_size=70&text=${encodeURIComponent(text)}`
+  // Reemplaza espacios largos por saltos de línea automáticos cada ~25 caracteres
+  let wrapped = text.replace(/(.{25})/g, '$1\n')
+
+  const url = `https://quickchart.io/graphviz?graph=digraph{a[label="${wrapped.replace(/\n/g, '\\n')}",shape=box,style=filled,fillcolor=green,fontname="Arial",fontsize=32]}`
   const resp = await axios.get(url, { responseType: 'arraybuffer' })
   return resp.data
 }
