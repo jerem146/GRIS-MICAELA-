@@ -5,13 +5,14 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
   if (!text) return m.reply(`⚠️ Uso correcto: *${usedPrefix + command} <texto>*`)
 
   try {
-    let safeText = encodeURIComponent(text)
+    // Convertir saltos de línea y caracteres especiales para la URL
+    let safeText = encodeURIComponent(text.replace(/\n/g, '%0A'))
 
-    // QuickChart Text API → fondo verde, texto negro
-    let url = `https://quickchart.io/render/text?text=${safeText}&fontSize=48&color=black&backgroundColor=%2300FF00&format=png&width=512&height=512&align=left`
+    // QuickChart Text API → texto multilínea, fondo verde
+    let url = `https://quickchart.io/render/text?text=${safeText}&fontSize=48&color=black&backgroundColor=%2300FF00&width=512&height=512&format=png&align=left`
 
     let res = await fetch(url)
-    if (!res.ok) throw await res.text()
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
     let buffer = await res.buffer()
 
     // Convertir a sticker
