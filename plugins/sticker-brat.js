@@ -2,7 +2,11 @@ import { sticker } from '../lib/sticker.js'
 import axios from 'axios'
 
 const fetchBrat = async (text) => {
-    const url = `https://placehold.co/512x512/8ACE00/000000.png?text=${encodeURIComponent(text)}&font=arial`
+    // Siempre en minúsculas estilo Charli
+    text = text.toLowerCase()
+
+    // Generador: fondo verde brat (#8ACE00), texto negro, centrado y en Impact Bold
+    const url = `https://placehold.co/512x512/8ACE00/000000.png?text=${encodeURIComponent(text)}&font=impact&bold=true`
     const response = await axios.get(url, {
         responseType: 'arraybuffer',
         timeout: 20000
