@@ -9,7 +9,7 @@ let handler = async (m, { conn, args, command, usedPrefix }) => {
   try {
     await m.react('🕓')
 
-    // Obtener nombre del bot desde config.json
+    // Nombre del bot desde config
     const botActual = conn.user?.jid?.split('@')[0].replace(/\D/g, '')
     const configPath = path.join('./JadiBots', botActual, 'config.json')
     let nombreBot = global.namebot || '⎯⎯⎯⎯⎯⎯ Bot Principal ⎯⎯⎯⎯⎯⎯'
@@ -23,7 +23,7 @@ let handler = async (m, { conn, args, command, usedPrefix }) => {
     let url = args[0]
     let videoInfo = null
 
-    // Si no es link, buscar en YouTube
+    // Si no es link, hacer búsqueda
     if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
       let search = await yts(args.join(' '))
       if (!search.videos?.length) return m.reply('⚠️ No se encontraron resultados.')
@@ -35,20 +35,24 @@ let handler = async (m, { conn, args, command, usedPrefix }) => {
       if (search?.title) videoInfo = search
     }
 
-    // Validar duración (1 hora = 3600 seg → aquí 63 min máx.)
-    if (videoInfo.seconds > 3780) return m.reply('⛔ El video supera el límite de 63 minutos.')
+    // Limite 63 min
+    if (videoInfo?.seconds > 3780) return m.reply('⛔ El video supera el límite de 63 minutos.')
 
-    // Usar API ytmp4
+    // Llamada a API
     let apiUrl = `https://myapiadonix.vercel.app/api/ytmp4?url=${encodeURIComponent(url)}`
     let res = await fetch(apiUrl)
     if (!res.ok) throw new Error('Error al conectar con la API.')
     let json = await res.json()
-    if (!json.success) throw new Error('No se pudo obtener información del video.')
 
-    // Extraer datos
-    let { title, thumbnail, quality, download } = json.data
+    // Extraer datos flexibles
+    let title = json?.data?.title || json?.result?.title || videoInfo?.title || "video"
+    let thumbnail = json?.data?.thumbnail || json?.result?.thumbnail || videoInfo?.thumbnail
+    let download = json?.data?.download || json?.result?.url || json?.url
+    let quality = json?.data?.quality || json?.result?.quality || "Desconocida"
 
-    // Contacto para citar
+    if (!download) throw new Error("⚠ No se encontró el enlace de descarga en la API.")
+
+    // Contacto
     let fkontak = {
       key: { fromMe: false, participant: "0@s.whatsapp.net", remoteJid: "status@broadcast" },
       message: {
@@ -61,26 +65,24 @@ let handler = async (m, { conn, args, command, usedPrefix }) => {
     }
 
     // Duración formateada
-    let dur = videoInfo.seconds || 0
+    let dur = videoInfo?.seconds || 0
     let h = Math.floor(dur / 3600)
     let m_ = Math.floor((dur % 3600) / 60)
     let s = dur % 60
     let duration = [h, m_, s].map(v => v.toString().padStart(2, '0')).join(':')
 
-    // Mensaje preview
+    // Preview
     let caption = `> 🎬 *${title}*
 > ⏱️ Duración: ${duration}
-> 📺 Calidad: ${quality || 'Desconocida'}`
+> 📺 Calidad: ${quality}`
 
     await conn.sendMessage(m.chat, {
       image: { url: thumbnail },
       caption,
-      contextInfo: {
-        mentionedJid: [m.sender]
-      }
+      contextInfo: { mentionedJid: [m.sender] }
     }, { quoted: fkontak })
 
-    // Enviar el video
+    // Video final
     await conn.sendMessage(m.chat, {
       video: { url: download },
       mimetype: 'video/mp4',
