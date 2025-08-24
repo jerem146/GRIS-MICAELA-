@@ -5,28 +5,10 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
   if (!text) return m.reply(`⚠️ Uso correcto: *${usedPrefix + command} <texto>*`)
 
   try {
-    let safeText = text.replace(/\"/g, '\\"')
+    let safeText = encodeURIComponent(text)
 
-    // Genera imagen con fondo verde y texto negro
-    let url = `https://quickchart.io/chart?bkg=%2300FF00&c={
-      type:'bar',
-      data:{labels:[""],datasets:[{label:"",data:[1]}]},
-      options:{
-        indexAxis:'y',
-        plugins:{
-          datalabels:{
-            anchor:'start',
-            align:'start',
-            color:'black',
-            font:{size:40},
-            formatter:()=>"${safeText}"
-          },
-          legend:{display:false},
-          tooltip:{enabled:false}
-        },
-        scales:{x:{display:false},y:{display:false}}
-      }
-    }`
+    // QuickChart Text API → fondo verde, texto negro
+    let url = `https://quickchart.io/render/text?text=${safeText}&fontSize=48&color=black&backgroundColor=%2300FF00&format=png&width=512&height=512&align=left`
 
     let res = await fetch(url)
     if (!res.ok) throw await res.text()
