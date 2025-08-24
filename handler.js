@@ -497,7 +497,7 @@ if (m) {
         console.log(`[Mute Handler] User ${m.sender.split('@')[0]} is muted. MuteWarn count: ${user.muteWarn}`);
 
         // Primero, decidimos la acción (advertir o eliminar) y la ejecutamos.
-        if (user.muteWarn < 1) {
+        if (user.muteWarn < 3) {
             try {
                 console.log(`[Mute Handler] Sending warning to ${m.sender.split('@')[0]}`);
                 await this.sendMessage(m.chat, { 
