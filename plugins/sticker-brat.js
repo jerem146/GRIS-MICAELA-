@@ -1,35 +1,36 @@
+import fetch from 'node-fetch'
 import { sticker } from '../lib/sticker.js'
-import axios from 'axios'
 
-const bratMaker = async (text) => {
-  // Reemplazo saltos automáticos cada 20-25 caracteres
-  let wrapped = text.replace(/(.{20})/g, '$1\n')
-
-  // API de quickchart con Graphviz para texto alineado a la izquierda
-  const url = `https://quickchart.io/graphviz?graph=digraph{a[label="${wrapped.replace(/\n/g, '\\n')}",shape=box,style=filled,fillcolor=white,fontname="Arial",fontsize=36,labelloc="t",justify="l"]}`
-  const resp = await axios.get(url, { responseType: 'arraybuffer' })
-  return resp.data
-}
-
-let handler = async (m, { conn, text }) => {
-  if (m.quoted) text = m.quoted.text || m.quoted.caption || text
-  if (!text) return conn.sendMessage(m.chat, { text: '❀ Ingresa un texto para crear el sticker brat.' }, { quoted: m })
+let handler = async (m, { conn, text, usedPrefix, command }) => {
+  if (!text) return m.reply(`⚠️ Uso correcto: *${usedPrefix + command} <texto>*`)
 
   try {
-    const buffer = await bratMaker(text)
-    let pack = global.db.data.users[m.sender] || {}
-    let texto1 = pack.text1 || global.packsticker
-    let texto2 = pack.text2 || global.packsticker2
+    // Formatear texto multilínea (se mantiene a la izquierda)
+    let texto = text.replace(/\\n/g, '\n')
 
-    const stkr = await sticker(buffer, false, texto1, texto2)
-    if (stkr) await conn.sendFile(m.chat, stkr, 'sticker.webp', '', m)
-    else throw new Error('✧ No pudo generar el sticker.')
+    // API QuickChart para generar imagen con texto alineado a la izquierda
+    let url = `https://quickchart.io/chart?bkg=white&c={type:'wordcloud',options:{text:'${texto}',rotation:0,fontFamily:'Arial',fontWeight:'bold',minFontSize:40,maxFontSize:60,color:'black',backgroundColor:'white'}}`
+
+    let res = await fetch(url)
+    if (!res.ok) throw await res.text()
+    let buffer = await res.buffer()
+
+    // Convertir imagen en sticker
+    let stkr = await sticker(buffer, false, 'Brat', 'Texto')
+    if (stkr) {
+      await conn.sendFile(m.chat, stkr, 'sticker.webp', '', m)
+    } else {
+      m.reply(`❌ Error al convertir en sticker`)
+    }
+
   } catch (e) {
-    return conn.sendMessage(m.chat, { text: `⚠︎ Error: ${e.message}` }, { quoted: m })
+    console.error(e)
+    m.reply(`⚠︎ Error: ${e.message}`)
   }
 }
 
-handler.command = ['brat']
+handler.help = ['brat <texto>']
 handler.tags = ['sticker']
-handler.help = ['brat *<texto>*']
+handler.command = /^brat$/i
+
 export default handler
