@@ -28,10 +28,12 @@ let handler = async (m, { conn, text }) => {
         let texto1 = packstickers.text1 || global.packsticker
         let texto2 = packstickers.text2 || global.packsticker2
 
+        // Generar sticker
         let stiker = await sticker(buffer, false, texto1, texto2)
 
         if (stiker) {
-            return conn.sendFile(m.chat, stiker, 'sticker.webp', '', m)
+            // Enviar sticker que se ve en WhatsApp
+            await conn.sendFile(m.chat, stiker, 'sticker.webp', '', m)
         } else {
             throw new Error("✧ No se pudo generar el sticker.")
         }
