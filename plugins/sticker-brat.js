@@ -5,37 +5,42 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
   if (!text) return m.reply(`⚠️ Uso correcto: *${usedPrefix + command} <texto>*`)
 
   try {
-    // Escapar saltos de línea y comillas
+    // Convertir saltos de línea
     let safeText = text.replace(/\n/g, '\\n').replace(/"/g, '\\"')
 
-    // Config Chart.js para SOLO texto (sin gráficas)
+    // Config Chart.js SOLO texto (sin gráficos, sin ejes)
     const chartConfig = {
-      type: 'scatter', // gráfico vacío
+      type: 'bubble',
       data: { datasets: [] },
       options: {
-        layout: { padding: 20 },
+        responsive: false,
         plugins: {
           legend: { display: false },
           tooltip: { enabled: false },
           datalabels: {
+            display: true,
+            align: 'top',
             anchor: 'start',
-            align: 'start',
             color: 'black',
             font: { family: 'Impact', size: 48, weight: 'bold' },
             formatter: () => safeText
           }
         },
-        scales: { x: { display: false }, y: { display: false } }
+        scales: {
+          x: { display: false, grid: { display: false } },
+          y: { display: false, grid: { display: false } }
+        }
       }
     }
 
+    // Fondo verde (#00FF00)
     const url = `https://quickchart.io/chart?w=512&h=512&bkg=%2300FF00&c=${encodeURIComponent(JSON.stringify(chartConfig))}`
 
     const res = await fetch(url)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const buffer = await res.buffer()
 
-    // Convertir a sticker
+    // Convertir en sticker
     const stkr = await sticker(buffer, false, 'Brat', 'Texto')
     if (stkr) {
       await conn.sendFile(m.chat, stkr, 'sticker.webp', '', m)
