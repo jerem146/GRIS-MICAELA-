@@ -1,66 +1,48 @@
-import fetch from 'node-fetch'
 import { sticker } from '../lib/sticker.js'
+import axios from 'axios'
 
-let handler = async (m, { conn, text, usedPrefix, command }) => {
-  if (!text) return m.reply(`⚠️ Uso correcto: *${usedPrefix + command} <texto>*`)
-
-  try {
-    let safeText = text.replace(/"/g, '\\"')
-
-    const chartConfig = {
-      type: 'scatter',
-      data: {
-        datasets: [{
-          data: [{ x: 0, y: 0 }],
-          pointRadius: 0
-        }]
-      },
-      options: {
-        plugins: {
-          legend: { display: false },
-          tooltip: { enabled: false },
-          datalabels: {
-            display: true,
-            anchor: 'center',
-            align: 'center',
-            color: 'black',
-            font: {
-              family: 'Impact',
-              size: Math.max(20, Math.min(80, 400 / text.length)), // autoajuste
-              weight: 'bold'
-            },
-            formatter: () => safeText
-          }
-        },
-        // 👇 Aquí se eliminan ejes y cuadrículas totalmente
-        scales: {
-          x: { display: false, grid: { display: false }, ticks: { display: false }, min: -1, max: 1 },
-          y: { display: false, grid: { display: false }, ticks: { display: false }, min: -1, max: 1 }
-        }
-      }
-    }
-
-    const url = `https://quickchart.io/chart?w=512&h=512&bkg=%2300FF00&c=${encodeURIComponent(JSON.stringify(chartConfig))}&plugins=datalabels`
-
-    const res = await fetch(url)
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const buffer = await res.buffer()
-
-    const stkr = await sticker(buffer, false, 'Brat', 'Texto')
-    if (stkr) {
-      await conn.sendFile(m.chat, stkr, 'sticker.webp', '', m)
-    } else {
-      m.reply(`❌ Error al convertir en sticker`)
-    }
-
-  } catch (e) {
-    console.error(e)
-    m.reply(`⚠︎ Error: ${e.message}`)
-  }
+const fetchBrat = async (text) => {
+    const url = `https://placehold.co/512x512/8ACE00/000000.png?text=${encodeURIComponent(text)}&font=arial`
+    const response = await axios.get(url, {
+        responseType: 'arraybuffer',
+        timeout: 20000
+    })
+    return response.data
 }
 
-handler.help = ['brat <texto>']
+let handler = async (m, { conn, text }) => {
+    if (m.quoted) {
+        text = m.quoted.text || m.quoted.caption || text
+    }
+    if (!text) {
+        return conn.sendMessage(m.chat, {
+            text: `❀ Por favor, responde a un mensaje o ingresa un texto para crear el Sticker brat.`,
+        }, { quoted: m })
+    }
+
+    try {
+        const buffer = Buffer.from(await fetchBrat(text))
+        let userId = m.sender
+        let packstickers = global.db.data.users[userId] || {}
+        let texto1 = packstickers.text1 || global.packsticker
+        let texto2 = packstickers.text2 || global.packsticker2
+
+        let stiker = await sticker(buffer, false, texto1, texto2)
+
+        if (stiker) {
+            await conn.sendFile(m.chat, stiker, 'sticker.webp', '', m)
+        } else {
+            throw new Error("✧ No se pudo generar el sticker.")
+        }
+    } catch (error) {
+        return conn.sendMessage(m.chat, {
+            text: `⚠︎ Ocurrió un error: ${error.message}`,
+        }, { quoted: m })
+    }
+}
+
+handler.command = ['brat']
 handler.tags = ['sticker']
-handler.command = /^brat$/i
+handler.help = ['brat *<texto>*']
 
 export default handler
