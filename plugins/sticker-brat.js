@@ -5,35 +5,29 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
   if (!text) return m.reply(`⚠️ Uso correcto: *${usedPrefix + command} <texto>*`)
 
   try {
-    // Convertir saltos de línea
     let safeText = text.replace(/\n/g, '\\n').replace(/"/g, '\\"')
 
-    // Config Chart.js SOLO texto (sin gráficos, sin ejes)
+    // Configuración especial de QuickChart para SOLO texto
     const chartConfig = {
-      type: 'bubble',
+      type: 'custom',
       data: { datasets: [] },
       options: {
-        responsive: false,
         plugins: {
-          legend: { display: false },
-          tooltip: { enabled: false },
-          datalabels: {
-            display: true,
-            align: 'top',
-            anchor: 'start',
+          renderText: {
+            text: safeText,
             color: 'black',
-            font: { family: 'Impact', size: 48, weight: 'bold' },
-            formatter: () => safeText
+            font: {
+              size: 64,
+              family: 'Impact',
+              weight: 'bold'
+            },
+            position: 'top-left'
           }
-        },
-        scales: {
-          x: { display: false, grid: { display: false } },
-          y: { display: false, grid: { display: false } }
         }
       }
     }
 
-    // Fondo verde (#00FF00)
+    // Fondo verde
     const url = `https://quickchart.io/chart?w=512&h=512&bkg=%2300FF00&c=${encodeURIComponent(JSON.stringify(chartConfig))}`
 
     const res = await fetch(url)
