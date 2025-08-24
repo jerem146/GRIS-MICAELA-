@@ -7,28 +7,39 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
   try {
     let safeText = text.replace(/\n/g, '\\n').replace(/"/g, '\\"')
 
-    // Configuración especial de QuickChart para SOLO texto
+    // Config Chart.js para SOLO texto con datalabels
     const chartConfig = {
-      type: 'custom',
-      data: { datasets: [] },
+      type: 'bar',
+      data: {
+        labels: [''],
+        datasets: [{
+          data: [1] // truco: dataset mínimo
+        }]
+      },
       options: {
         plugins: {
-          renderText: {
-            text: safeText,
+          legend: { display: false },
+          tooltip: { enabled: false },
+          datalabels: {
+            anchor: 'center',
+            align: 'center',
             color: 'black',
             font: {
-              size: 64,
               family: 'Impact',
+              size: 64,
               weight: 'bold'
             },
-            position: 'top-left'
+            formatter: () => safeText
           }
+        },
+        scales: {
+          x: { display: false, grid: { display: false } },
+          y: { display: false, grid: { display: false } }
         }
       }
     }
 
-    // Fondo verde
-    const url = `https://quickchart.io/chart?w=512&h=512&bkg=%2300FF00&c=${encodeURIComponent(JSON.stringify(chartConfig))}`
+    const url = `https://quickchart.io/chart?w=512&h=512&bkg=%2300FF00&c=${encodeURIComponent(JSON.stringify(chartConfig))}&plugins=datalabels`
 
     const res = await fetch(url)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
