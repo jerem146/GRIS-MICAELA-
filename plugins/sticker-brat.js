@@ -1,7 +1,6 @@
 import { sticker } from '../lib/sticker.js'
 import axios from 'axios'
 
-// 👉 función para dividir texto en varias líneas automáticamente
 const wrapText = (str, maxWords = 4) => {
   const words = str.split(" ")
   let lines = []
@@ -11,10 +10,20 @@ const wrapText = (str, maxWords = 4) => {
   return lines.join("\n")
 }
 
+const calcFontSize = (lines) => {
+  if (lines <= 2) return 150
+  if (lines <= 3) return 120
+  if (lines <= 4) return 90
+  return 70
+}
+
 const fetchBrat = async (text) => {
     text = text.toLowerCase()
-    const wrapped = wrapText(text, 4) // máximo 4 palabras por línea
-    const url = `https://placehold.co/512x512/8ACE00/000000.png?text=${encodeURIComponent(wrapped)}&font=impact&bold=true`
+    const wrapped = wrapText(text, 4)
+    const lines = wrapped.split("\n").length
+    const size = calcFontSize(lines)
+
+    const url = `https://placehold.co/512x512/8ACE00/000000.png?text=${encodeURIComponent(wrapped)}&font=impact&bold=true&size=${size}`
     const response = await axios.get(url, {
         responseType: 'arraybuffer',
         timeout: 20000
