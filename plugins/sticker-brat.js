@@ -1,12 +1,20 @@
 import { sticker } from '../lib/sticker.js'
 import axios from 'axios'
 
-const fetchBrat = async (text) => {
-    // Siempre en minúsculas estilo Charli
-    text = text.toLowerCase()
+// 👉 función para dividir texto en varias líneas automáticamente
+const wrapText = (str, maxWords = 4) => {
+  const words = str.split(" ")
+  let lines = []
+  for (let i = 0; i < words.length; i += maxWords) {
+    lines.push(words.slice(i, i + maxWords).join(" "))
+  }
+  return lines.join("\n")
+}
 
-    // Generador: fondo verde brat (#8ACE00), texto negro, centrado y en Impact Bold
-    const url = `https://placehold.co/512x512/8ACE00/000000.png?text=${encodeURIComponent(text)}&font=impact&bold=true`
+const fetchBrat = async (text) => {
+    text = text.toLowerCase()
+    const wrapped = wrapText(text, 4) // máximo 4 palabras por línea
+    const url = `https://placehold.co/512x512/8ACE00/000000.png?text=${encodeURIComponent(wrapped)}&font=impact&bold=true`
     const response = await axios.get(url, {
         responseType: 'arraybuffer',
         timeout: 20000
