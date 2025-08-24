@@ -5,14 +5,15 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
   if (!text) return m.reply(`⚠️ Uso correcto: *${usedPrefix + command} <texto>*`)
 
   try {
-    // Prepara texto multilínea natural
+    // Escapar saltos de línea y comillas
     let safeText = text.replace(/\n/g, '\\n').replace(/"/g, '\\"')
 
-    // Chart.js config para sólo texto usando datalabels
+    // Config Chart.js para SOLO texto (sin gráficas)
     const chartConfig = {
-      type: 'bar',
-      data: { labels: [''], datasets: [{ label: '', data: [0], backgroundColor:'#00FF00' }] },
+      type: 'scatter', // gráfico vacío
+      data: { datasets: [] },
       options: {
+        layout: { padding: 20 },
         plugins: {
           legend: { display: false },
           tooltip: { enabled: false },
@@ -21,20 +22,20 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
             align: 'start',
             color: 'black',
             font: { family: 'Impact', size: 48, weight: 'bold' },
-            formatter: function() { return safeText }
+            formatter: () => safeText
           }
         },
         scales: { x: { display: false }, y: { display: false } }
       }
     }
 
-    const url = `https://quickchart.io/chart?w=512&h=512&c=${encodeURIComponent(JSON.stringify(chartConfig))}`
+    const url = `https://quickchart.io/chart?w=512&h=512&bkg=%2300FF00&c=${encodeURIComponent(JSON.stringify(chartConfig))}`
 
     const res = await fetch(url)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const buffer = await res.buffer()
 
-    // Convertir la imagen a sticker .webp
+    // Convertir a sticker
     const stkr = await sticker(buffer, false, 'Brat', 'Texto')
     if (stkr) {
       await conn.sendFile(m.chat, stkr, 'sticker.webp', '', m)
