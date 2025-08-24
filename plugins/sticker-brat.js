@@ -1,28 +1,14 @@
 import { sticker } from '../lib/sticker.js'
 import axios from 'axios'
 
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
-
-const fetchSticker = async (text, attempt = 1) => {
-    try {
-        // API principal
-        const response = await axios.get('https://api.nekorinn.my.id/maker/brat-v2', {
-            params: { text },
-            responseType: 'arraybuffer',
-            timeout: 15000
-        })
-        return response.data
-    } catch (error) {
-        // Si la API principal falla (502, 500, 404...) intentamos con otra
-        if ((error.response?.status === 502 || error.response?.status === 500) && attempt === 1) {
-            const alt = await axios.get(`https://api.lolhuman.xyz/api/brat?apikey=PAIMON&text=${encodeURIComponent(text)}`, {
-                responseType: 'arraybuffer',
-                timeout: 15000
-            })
-            return alt.data
-        }
-        throw error
-    }
+const fetchSticker = async (text) => {
+    const url = `https://api.neoxr.eu/brat`
+    const response = await axios.get(url, {
+        params: { text, apikey: 'Paimon' },
+        responseType: 'arraybuffer',
+        timeout: 20000
+    })
+    return response.data
 }
 
 let handler = async (m, { conn, text }) => {
