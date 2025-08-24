@@ -7,13 +7,14 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
   try {
     let safeText = text.replace(/\n/g, '\\n').replace(/"/g, '\\"')
 
-    // Config Chart.js para SOLO texto con datalabels
+    // Config Chart.js en scatter vacío
     const chartConfig = {
-      type: 'bar',
+      type: 'scatter',
       data: {
-        labels: [''],
         datasets: [{
-          data: [1] // truco: dataset mínimo
+          data: [{ x: 0, y: 0 }],
+          pointRadius: 0, // ocultar el punto
+          pointHoverRadius: 0
         }]
       },
       options: {
@@ -33,8 +34,8 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
           }
         },
         scales: {
-          x: { display: false, grid: { display: false } },
-          y: { display: false, grid: { display: false } }
+          x: { display: false, grid: { display: false }, min: -1, max: 1 },
+          y: { display: false, grid: { display: false }, min: -1, max: 1 }
         }
       }
     }
