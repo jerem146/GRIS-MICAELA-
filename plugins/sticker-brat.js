@@ -5,16 +5,15 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
   if (!text) return m.reply(`⚠️ Uso correcto: *${usedPrefix + command} <texto>*`)
 
   try {
-    let safeText = text.replace(/\n/g, '\\n').replace(/"/g, '\\"')
+    // Mantener saltos de línea
+    let safeText = text.replace(/"/g, '\\"')
 
-    // Config Chart.js en scatter vacío
     const chartConfig = {
       type: 'scatter',
       data: {
         datasets: [{
           data: [{ x: 0, y: 0 }],
-          pointRadius: 0, // ocultar el punto
-          pointHoverRadius: 0
+          pointRadius: 0
         }]
       },
       options: {
@@ -22,20 +21,22 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
           legend: { display: false },
           tooltip: { enabled: false },
           datalabels: {
+            display: true,
             anchor: 'center',
             align: 'center',
             color: 'black',
             font: {
               family: 'Impact',
-              size: 64,
+              // 👇 Autoajuste: grande si es corto, pequeño si es largo
+              size: Math.max(20, Math.min(80, 400 / text.length)),
               weight: 'bold'
             },
             formatter: () => safeText
           }
         },
         scales: {
-          x: { display: false, grid: { display: false }, min: -1, max: 1 },
-          y: { display: false, grid: { display: false }, min: -1, max: 1 }
+          x: { display: false, min: -1, max: 1 },
+          y: { display: false, min: -1, max: 1 }
         }
       }
     }
@@ -46,7 +47,6 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const buffer = await res.buffer()
 
-    // Convertir en sticker
     const stkr = await sticker(buffer, false, 'Brat', 'Texto')
     if (stkr) {
       await conn.sendFile(m.chat, stkr, 'sticker.webp', '', m)
