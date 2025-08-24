@@ -5,7 +5,6 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
   if (!text) return m.reply(`⚠️ Uso correcto: *${usedPrefix + command} <texto>*`)
 
   try {
-    // Mantener saltos de línea
     let safeText = text.replace(/"/g, '\\"')
 
     const chartConfig = {
@@ -27,16 +26,16 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
             color: 'black',
             font: {
               family: 'Impact',
-              // 👇 Autoajuste: grande si es corto, pequeño si es largo
-              size: Math.max(20, Math.min(80, 400 / text.length)),
+              size: Math.max(20, Math.min(80, 400 / text.length)), // autoajuste
               weight: 'bold'
             },
             formatter: () => safeText
           }
         },
+        // 👇 Aquí se eliminan ejes y cuadrículas totalmente
         scales: {
-          x: { display: false, min: -1, max: 1 },
-          y: { display: false, min: -1, max: 1 }
+          x: { display: false, grid: { display: false }, ticks: { display: false }, min: -1, max: 1 },
+          y: { display: false, grid: { display: false }, ticks: { display: false }, min: -1, max: 1 }
         }
       }
     }
