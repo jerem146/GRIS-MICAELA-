@@ -1,36 +1,40 @@
 import { sticker } from '../lib/sticker.js'
 import axios from 'axios'
 
-// --- FUNCIÓN MEJORADA PARA FORMATEAR EL TEXTO ---
-// Esta función convierte el texto al formato especial que la API requiere.
 const formatTextForApi = (text) => {
-    if (!text) return '_'; // Si no hay texto, devuelve un guion bajo.
+    if (!text) return '_';
     return text
-        .replace(/-/g, '__')  // Guiones (-) se convierten en doble guion bajo (__)
-        .replace(/_/g, '--')  // Guiones bajos (_) se convierten en doble guion (-)
-        .replace(/\s/g, '_')   // Espacios se convierten en guion bajo (_)
-        .replace(/\?/g, '~q')  // Signos de interrogación (?) se convierten en ~q
-        .replace(/%/g, '~p')   // Porcentajes (%) se convierten en ~p
-        .replace(/\//g, '~s')  // Barras inclinadas (/) se convierten en ~s
-        .replace(/#/g, '~h')   // Almohadillas (#) se convierten en ~h
-        .replace(/"/g, "''"); // Comillas dobles (") se convierten en comillas simples dobles ('')
+        .replace(/-/g, '__')
+        .replace(/_/g, '--')
+        .replace(/\s/g, '_')
+        .replace(/\?/g, '~q')
+        .replace(/%/g, '~p')
+        .replace(/\//g, '~s')
+        .replace(/#/g, '~h')
+        .replace(/"/g, "''");
 };
 
 const fetchBrat = async (text) => {
     const backgroundImageUrl = 'https://i.postimg.cc/RFrz9m8N/green-square.png';
-    
-    // Usamos la nueva función para asegurar que el texto esté bien formateado
     const topText = formatTextForApi(text);
-    const bottomText = '_'; // Dejamos el texto de abajo vacío
+    const bottomText = '_';
 
     const url = `https://api.memegen.link/images/custom/${topText}/${bottomText}.png?background=${backgroundImageUrl}`;
     
     console.log('URL Generada (para depuración):', url);
 
+    // --- LA CORRECCIÓN ESTÁ AQUÍ ---
+    // Añadimos cabeceras (headers) para simular ser un navegador y evitar el error 415.
     const response = await axios.get(url, {
         responseType: 'arraybuffer',
-        timeout: 20000
+        timeout: 20000,
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
+            'Accept': 'image/png,image/webp,image/apng,*/*;q=0.8',
+        }
     });
+    // --- FIN DE LA CORRECCIÓN ---
+
     return response.data;
 }
 
@@ -46,25 +50,18 @@ let handler = async (m, { conn, text }) => {
 
     try {
         const textoProcesado = text.split('|').join(' ');
-
         const buffer = Buffer.from(await fetchBrat(textoProcesado));
-
-        let userId = m.sender
-        let packstickers = global.db.data.users[userId] || {}
-        let texto1 = packstickers.text1 || global.packsticker
-        let texto2 = packstickers.text2 || global.packsticker2
-
-        let stiker = await sticker(buffer, false, texto1, texto2)
+        const stiker = await sticker(buffer, false, global.packsticker, global.packsticker2);
 
         if (stiker) {
-            await conn.sendFile(m.chat, stiker, 'sticker.webp', '', m)
+            await conn.sendFile(m.chat, stiker, 'sticker.webp', '', m);
         } else {
-            throw new Error("✧ No se pudo generar el sticker.")
+            throw new Error("✧ No se pudo generar el sticker.");
         }
     } catch (error) {
         console.error(error);
         return conn.sendMessage(m.chat, {
-            text: `⚠︎ Ocurrió un error. Es posible que la API no haya podido procesar el texto. Intenta con otras palabras.`,
+            text: `⚠︎ Ocurrió un error al contactar la API. Por favor, intenta de nuevo.`,
         }, { quoted: m });
     }
 }
