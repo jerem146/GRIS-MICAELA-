@@ -276,6 +276,7 @@ const isAdmin = isRAdmin || user?.admin === "admin"
 const isBotAdmin = !!bot?.admin
 
 const ___dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), './plugins')
+try { // <--- ESTA ES LA LÍNEA AÑADIDA PARA CORREGIR EL ERROR
 for (let name in global.plugins) {
 let plugin = global.plugins[name]
 if (!plugin)
