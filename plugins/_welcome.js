@@ -11,13 +11,13 @@ export async function before(m, { conn, participants, groupMetadata }) {
   if (!who) return true
 
   const taguser = `@${who.split('@')[0]}`
+  
+  // ---> ESTA VARIABLE YA CONTIENE EL NÚMERO DE MIEMBROS
   const totalMembers = participants.length
-  const defaultImage = 'https://files.catbox.moe/xr2m6u.jpg' // Imagen por si el usuario no tiene foto de perfil
+  
+  const defaultImage = 'https://files.catbox.moe/xr2m6u.jpg'
+  const botName = 'SukiBot - MDไอ'
 
-  // --- ASEGÚRATE DE PONER EL NOMBRE DE TU BOT AQUÍ ---
-  const botName = 'GRIS-MICA' // Nombre del bot que aparecerá en el mensaje
-
-  // Función para obtener la fecha actual en formato DD/MM/YYYY
   const getCurrentDate = () => {
     const date = new Date()
     const day = String(date.getDate()).padStart(2, '0')
@@ -34,7 +34,7 @@ export async function before(m, { conn, participants, groupMetadata }) {
     },
     message: {
       "contactMessage": {
-        "displayName": "GRIS-MD",
+        "displayName": "SukiBot-MD",
         "vcard": `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:y\nitem1.TEL;waid=${who.split('@')[0]}:${who.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD`
       }
     }
@@ -48,22 +48,22 @@ export async function before(m, { conn, participants, groupMetadata }) {
     img = await (await fetch(defaultImage)).buffer()
   }
 
-  // Mensaje cuando un usuario se une
-  if (m.messageStubType === WAMessageStubType.GROUP_PARTICANT_ADD) {
+  // --- MENSAJE DE BIENVENIDA ---
+  if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_ADD) {
     const welcomeMessage = `
-${taguser} SE UNE AL VIAJE
+${taguser} SE UNE AL VIAJE 🌸
 
 ┌─〔 BIENVENIDA 〕─
-│ 🌿 ${taguser} se unió a
-│ ${botName}
+│ 🌿 @${who.split('@')[0]}
 │
-│ 🧁 NOMBRE:
-│ +${who.split('@')[0]}
-│
+│ 🧁 NOMBRE: +${who.split('@')[0]}
 │ 🗓️ ENTRADA: ${getCurrentDate()}
+│
+│ 🌳 *GRUPO:* ${groupMetadata.subject}
+│ 📊 *MIEMBROS:* ${totalMembers}
 └──────────────
 
-MICAELA-MD TE DA LA BIENVENIDA CON CARIÑO 🌸
+¡DISFRUTA TU ESTADÍA! ✨
 `
     await conn.sendMessage(m.chat, {
         image: img,
@@ -71,7 +71,7 @@ MICAELA-MD TE DA LA BIENVENIDA CON CARIÑO 🌸
         mentions: [who]
     }, { quoted: fkontak })
 
-  // Mensaje cuando un usuario sale
+  // --- MENSAJE DE DESPEDIDA ---
   } else if (
     m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE ||
     m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_LEAVE
@@ -80,16 +80,16 @@ MICAELA-MD TE DA LA BIENVENIDA CON CARIÑO 🌸
 ${taguser} CONTINÚA SU VIAJE 👋
 
 ┌─〔 DESPEDIDA 〕─
-│ 🌿 ${taguser} salió de
-│ ${botName}
+│ 🌿 @${who.split('@')[0]}
 │
-│ 🧁 NOMBRE:
-│ +${who.split('@')[0]}
-│
+│ 🧁 NOMBRE: +${who.split('@')[0]}
 │ 🗓️ SALIDA: ${getCurrentDate()}
+│
+│ 🌳 *GRUPO:* ${groupMetadata.subject}
+│ 📊 *MIEMBROS:* ${totalMembers - 1}
 └──────────────
 
-MICAELA-MD TE RECORDARÁ CON CARIÑO 🌸
+¡HASTA PRONTO! 🌸
 `
     await conn.sendMessage(m.chat, {
         image: img,
