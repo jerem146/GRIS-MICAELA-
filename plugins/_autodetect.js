@@ -30,7 +30,7 @@ if (chat.detect && m.messageStubType == 21) {
 }
 // ... (el resto de tu código)```
 
-*/### Cambios realizados:
+/*### Cambios realizados:
 
 1.  **Agrupación de Mensajes:** Se creó un objeto `mensajes` para tener todas las plantillas de texto organizadas en un solo lugar, lo que facilita futuras modificaciones.
 2.  **Uso de Emojis Temáticos:** Cada mensaje ahora comienza con un emoji que representa visualmente la acción (📝 para nombre, 🖼️ para foto, ⚙️ para ajustes, etc.).
