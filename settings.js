@@ -61,7 +61,7 @@ global.etiqueta = '💖 𝐆𝐑𝐈𝐒 𝑴𝒊𝒄𝒂 💖'
 global.moneda = '¥enes'
 global.welcom1 = '❍ Edita Con El Comando setwelcome'
 global.welcom2 = '❍ Edita Con El Comando setbye'
-global.banner = 'https://files.catbox.moe/5nmy7i.jpg'
+global.banner = 'https://i.postimg.cc/BZ50ys9q/IMG-20250813-WA2276.jpg'
 global.avatar = 'https://files.catbox.moe/f5s3oo.jpg'
 
 //*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
