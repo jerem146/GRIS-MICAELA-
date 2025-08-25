@@ -63,7 +63,7 @@ ${taguser} SE UNE AL VIAJE
 │ 🗓️ ENTRADA: ${getCurrentDate()}
 └──────────────
 
-SUKI TE DA LA BIENVENIDA CON CARIÑO 🌸
+MICAELA-MD TE DA LA BIENVENIDA CON CARIÑO 🌸
 `
     await conn.sendMessage(m.chat, {
         image: img,
