@@ -12,8 +12,10 @@ export async function before(m, { conn, participants, groupMetadata }) {
 
   const taguser = `@${who.split('@')[0]}`
   const totalMembers = participants.length
-  const defaultImage = 'https://files.catbox.moe/xr2m6u.jpg' // Puedes cambiar esta imagen por defecto
-  const botName = 'SukiBot - MDไอ' // Nombre de tu bot
+  const defaultImage = 'https://files.catbox.moe/xr2m6u.jpg' // Imagen por si el usuario no tiene foto de perfil
+
+  // --- ASEGÚRATE DE PONER EL NOMBRE DE TU BOT AQUÍ ---
+  const botName = 'SukiBot - MDไอ' // Nombre del bot que aparecerá en el mensaje
 
   // Función para obtener la fecha actual en formato DD/MM/YYYY
   const getCurrentDate = () => {
@@ -46,48 +48,49 @@ export async function before(m, { conn, participants, groupMetadata }) {
     img = await (await fetch(defaultImage)).buffer()
   }
 
-  if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_ADD) {
-    const welcomeTitle = ' BIENVENIDA DE SUKI '
+  // Mensaje cuando un usuario se une
+  if (m.messageStubType === WAMessageStubType.GROUP_PARTICANT_ADD) {
     const welcomeMessage = `
-${taguser} SE UNE AL VIAJE 
+${taguser} SE UNE AL VIAJE
 
 ┌─〔 BIENVENIDA 〕─
-│ 🌿 @${who.split('@')[0]} se unió a
+│ 🌿 ${taguser} se unió a
 │ ${botName}
 │
-│ 🧁 NOMBRE: +${who.split('@')[0]}
+│ 🧁 NOMBRE:
+│ +${who.split('@')[0]}
+│
 │ 🗓️ ENTRADA: ${getCurrentDate()}
 └──────────────
 
 SUKI TE DA LA BIENVENIDA CON CARIÑO 🌸
 `
-    // Aquí puedes usar la función que envía el mensaje, por ejemplo `conn.sendMessage` o `conn.sendMini`
-    // Adaptado al ejemplo, podría ser algo así:
     await conn.sendMessage(m.chat, {
         image: img,
         caption: welcomeMessage,
         mentions: [who]
     }, { quoted: fkontak })
 
+  // Mensaje cuando un usuario sale
   } else if (
     m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE ||
     m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_LEAVE
   ) {
-    const farewellTitle = '🌙 DESPEDIDA DE SUKI'
     const farewellMessage = `
-${taguser} CONTINÚA SU VIAJE  👋
+${taguser} CONTINÚA SU VIAJE 👋
 
 ┌─〔 DESPEDIDA 〕─
-│ 🌿 @${who.split('@')[0]} salió de
+│ 🌿 ${taguser} salió de
 │ ${botName}
 │
-│ 🧁 NOMBRE: +${who.split('@')[0]}
+│ 🧁 NOMBRE:
+│ +${who.split('@')[0]}
+│
 │ 🗓️ SALIDA: ${getCurrentDate()}
 └──────────────
 
 SUKI TE RECORDARÁ CON CARIÑO 🌸
 `
-    // Aquí también usarías tu función de envío de mensajes
     await conn.sendMessage(m.chat, {
         image: img,
         caption: farewellMessage,
