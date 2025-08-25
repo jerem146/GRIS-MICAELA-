@@ -30,7 +30,7 @@ if (chat.detect && m.messageStubType == 21) {
 }
 // ... (el resto de tu código)```
 
-### Cambios realizados:
+*/### Cambios realizados:
 
 1.  **Agrupación de Mensajes:** Se creó un objeto `mensajes` para tener todas las plantillas de texto organizadas en un solo lugar, lo que facilita futuras modificaciones.
 2.  **Uso de Emojis Temáticos:** Cada mensaje ahora comienza con un emoji que representa visualmente la acción (📝 para nombre, 🖼️ para foto, ⚙️ para ajustes, etc.).
@@ -38,4 +38,4 @@ if (chat.detect && m.messageStubType == 21) {
 4.  **Redacción Mejorada:** Se ajustó el texto para que sea más directo y amigable, mejorando la legibilidad.
 5.  **Mantenimiento de la Funcionalidad:** La lógica del código (`if/else if`) y las variables dinámicas como `usuario` y `m.messageStubParameters` se mantuvieron intactas para asegurar que todo siga funcionando como antes.
 
-Simplemente reemplaza la sección de definición de variables de texto de tu código original con esta nueva versión para aplicar el cambio de estilo.
+Simplemente reemplaza la sección de definición de variables de texto de tu código original con esta nueva versión para aplicar el cambio de estilo.*/
