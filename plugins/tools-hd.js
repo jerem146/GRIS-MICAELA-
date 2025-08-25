@@ -1,63 +1,78 @@
-import axios from 'axios'
-import FormData from "form-data"
+import fetch from 'node-fetch'
+import FormData from 'form-data'
 
-async function upscaleImage(imageData) {
+async function uploadImage(buffer) {
+  const form = new FormData()
+  form.append('fileToUpload', buffer, 'image.jpg')
+  form.append('reqtype', 'fileupload')
+
+  const res = await fetch('https://catbox.moe/user/api.php', { method: 'POST', body: form })
+  if (!res.ok) throw new Error('Error al subir la imagen')
+  return await res.text()
+}
+
+let handler = async (m, { conn, usedPrefix, command }) => {
   try {
-    const apiUrl = "https://myapiadonix.vercel.app/api/ends/upscale";
-    const formData = new FormData();
-    
-    // --- LA CORRECCIÓN ESTÁ AQUÍ ---
-    // El campo correcto que la API espera es 'file', no 'image'.
-    formData.append('file', Buffer.from(imageData), {
-        filename: 'upscale.jpg',
-        contentType: 'image/jpeg'
-    });
-    // --- FIN DE LA CORRECCIÓN ---
+    await m.react('🕓')
 
-    const { data } = await axios.post(apiUrl, formData, {
-        headers: formData.getHeaders(),
-        responseType: 'arraybuffer'
-    });
+    let q = m.quoted ? m.quoted : m  
+    let mime = (q.msg || q).mimetype || q.mediaType || ''  
 
-    return data;
-  } catch (error) {
-    console.error("Error en la API de upscale:", error.message);
-    throw new Error('La API no pudo procesar la imagen.');
+    if (!mime) {  
+      return conn.sendMessage(m.chat, {  
+        text: `❀ Por favor, envía una imagen o responde a una imagen usando *${usedPrefix + command}*`,  
+        ...global.rcanal  
+      }, { quoted: m })  
+    }  
+
+    if (!/image\/(jpe?g|png|webp)/.test(mime)) {  
+      return conn.sendMessage(m.chat, {  
+        text: `✧ El formato (${mime}) no es compatible, usa JPG, PNG o WEBP.`,  
+        ...global.rcanal  
+      }, { quoted: m })  
+    }  
+
+    await conn.sendMessage(m.chat, {  
+      text: `✧ Mejorando tu imagen, espera...`,  
+      ...global.rcanal  
+    }, { quoted: m })  
+
+    let img = await q.download?.()  
+    if (!img) throw new Error('No pude descargar la imagen.')  
+
+    let uploadedUrl = await uploadImage(img)  
+
+    // Usar la nueva API
+    const apiUrl = `https://myapiadonix.vercel.app/api/ends/upscale?imageUrl=${encodeURIComponent(uploadedUrl)}`  
+    const res = await fetch(apiUrl)  
+    if (!res.ok) throw new Error(`Error en la API: ${res.statusText}`)  
+    const data = await res.json()  
+
+    if (data.status !== 'success' || !data.result_url) throw new Error('No se pudo mejorar la imagen.')  
+
+    const improvedRes = await fetch(data.result_url)  
+    const buffer = await improvedRes.buffer()  
+
+    await conn.sendMessage(m.chat, {  
+      image: buffer,  
+      caption: '✅ *Imagen mejorada con éxito*',  
+      ...global.rcanal  
+    }, { quoted: m })  
+
+    await m.react('✅')
+
+  } catch (e) {
+    console.error(e)
+    await m.react('✖️')
+    await conn.sendMessage(m.chat, {
+      text: '❌ Error al mejorar la imagen, inténtalo más tarde.',
+      ...global.rcanal
+    }, { quoted: m })
   }
 }
 
-const handler = async (m, { conn }) => {
-  try {    
-    await m.react('🕓')
-    
-    let q = m.quoted ? m.quoted : m;
-    let mime = (q.msg || q).mimetype || q.mediaType || "";
+handler.help = ['hd']
+handler.tags = ['tools']
+handler.command = ['remini', 'hd', 'enhance']
 
-    if (!mime) {
-      return conn.reply(m.chat, `❀ Por favor, envía una imagen o responde a ella con este comando.`, m);
-    }
-    if (!/image\/(jpe?g|png)/.test(mime)) {
-      return m.reply(`✧ El formato del archivo (${mime}) no es compatible. Solo se aceptan imágenes.`);
-    }
-
-    conn.reply(m.chat, `❀ Mejorando la calidad de la imagen, por favor espera...`, m);  
-    
-    let img = await q.download?.();
-    let processedImage = await upscaleImage(img);
-
-    const successMessage = '❀ ¡Calidad mejorada con éxito!';
-    await conn.sendFile(m.chat, processedImage, 'enhanced.jpg', successMessage, m);
-    await m.react('✅');
-
-  } catch (e) {
-    console.error(e);
-    await m.react('✖️');
-    conn.reply(m.chat, `✧ Ocurrió un error. ${e.message}`, m);
-  }
-};
-
-handler.help = ["hd"];
-handler.tags = ["tools"];
-handler.command = ["remini", "hd", "enhance"];
-
-export default handler;
+export default handler
