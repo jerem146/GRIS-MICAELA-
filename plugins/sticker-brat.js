@@ -1,21 +1,31 @@
 import { sticker } from '../lib/sticker.js'
 import axios from 'axios'
 
-// --- FUNCIÓN MODIFICADA PARA USAR LA NUEVA API ---
-const fetchBrat = async (text) => {
-    // URL de la imagen de fondo verde (512x512)
-    const backgroundImageUrl = 'https://i.postimg.cc/RFrz9m8N/green-square.png';
+// --- FUNCIÓN MEJORADA PARA FORMATEAR EL TEXTO ---
+// Esta función convierte el texto al formato especial que la API requiere.
+const formatTextForApi = (text) => {
+    if (!text) return '_'; // Si no hay texto, devuelve un guion bajo.
+    return text
+        .replace(/-/g, '__')  // Guiones (-) se convierten en doble guion bajo (__)
+        .replace(/_/g, '--')  // Guiones bajos (_) se convierten en doble guion (-)
+        .replace(/\s/g, '_')   // Espacios se convierten en guion bajo (_)
+        .replace(/\?/g, '~q')  // Signos de interrogación (?) se convierten en ~q
+        .replace(/%/g, '~p')   // Porcentajes (%) se convierten en ~p
+        .replace(/\//g, '~s')  // Barras inclinadas (/) se convierten en ~s
+        .replace(/#/g, '~h')   // Almohadillas (#) se convierten en ~h
+        .replace(/"/g, "''"); // Comillas dobles (") se convierten en comillas simples dobles ('')
+};
 
-    // La API de memes necesita que el texto esté formateado para la URL.
-    // Reemplazamos espacios con guiones bajos (_), y caracteres especiales.
-    // Usamos la primera línea de texto como el texto superior del "meme".
-    // El texto inferior lo dejamos en blanco con un solo guion bajo.
-    const topText = text.replace(/\s/g, '_').replace(/\?/g, '~q').replace(/\//g, '~s');
-    const bottomText = '_';
+const fetchBrat = async (text) => {
+    const backgroundImageUrl = 'https://i.postimg.cc/RFrz9m8N/green-square.png';
+    
+    // Usamos la nueva función para asegurar que el texto esté bien formateado
+    const topText = formatTextForApi(text);
+    const bottomText = '_'; // Dejamos el texto de abajo vacío
 
     const url = `https://api.memegen.link/images/custom/${topText}/${bottomText}.png?background=${backgroundImageUrl}`;
     
-    console.log('URL Generada:', url); // Esto te ayudará a ver la URL que se está creando
+    console.log('URL Generada (para depuración):', url);
 
     const response = await axios.get(url, {
         responseType: 'arraybuffer',
@@ -30,13 +40,11 @@ let handler = async (m, { conn, text }) => {
     }
     if (!text) {
         return conn.sendMessage(m.chat, {
-            text: `❀ Por favor, responde a un mensaje o ingresa un texto para crear el Sticker.\n\n❀ *Ejemplo:*\n.brat TE AMO MUCHO`,
+            text: `❀ Por favor, responde a un mensaje o ingresa un texto para crear el Sticker.\n\n❀ *Ejemplo:*\n.brat ¿seguro?`,
         }, { quoted: m });
     }
 
     try {
-        // La nueva API no maneja bien los saltos de línea, así que los unimos con un espacio.
-        // Si quieres un salto de línea, tendrás que crear dos stickers separados.
         const textoProcesado = text.split('|').join(' ');
 
         const buffer = Buffer.from(await fetchBrat(textoProcesado));
@@ -54,7 +62,7 @@ let handler = async (m, { conn, text }) => {
             throw new Error("✧ No se pudo generar el sticker.")
         }
     } catch (error) {
-        console.error(error); // Muestra el error completo en la consola
+        console.error(error);
         return conn.sendMessage(m.chat, {
             text: `⚠︎ Ocurrió un error. Es posible que la API no haya podido procesar el texto. Intenta con otras palabras.`,
         }, { quoted: m });
@@ -63,7 +71,6 @@ let handler = async (m, { conn, text }) => {
 
 handler.command = ['brat']
 handler.tags = ['sticker']
-// El uso de "|" ya no es práctico con esta API, así que lo simplificamos.
 handler.help = ['brat *<texto>*']
 
 export default handler;
