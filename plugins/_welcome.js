@@ -10,11 +10,17 @@ export async function before(m, { conn, participants, groupMetadata }) {
   const who = m.messageStubParameters?.[0]
   if (!who) return true
 
+  // --- CONFIGURACIÓN AUTOMÁTICA ---
+  // ✨ ESTA LÍNEA TOMA EL NOMBRE AUTOMÁTICAMENTE DE TU CONFIGURACIÓN GLOBAL ✨
+  const botName = global.botname || 'Mi Bot'; // Si no encuentra un nombre global, usará 'Mi Bot' como respaldo.
+  const textbot = botName; 
+  // ------------------------------------
+
   const taguser = `@${who.split('@')[0]}`
   const totalMembers = participants.length
   const defaultImage = 'https://files.catbox.moe/xr2m6u.jpg'
-  const welcomeMessage = chat.welcomeMessage || global.welcom1 || 'Bienvenido/a :'
-  const despMessage = chat.despMessage || global.welcom2 || 'Se fue 😿'
+  const welcomeMessage = chat.welcomeMessage || '¡Bienvenido/a!'
+  const despMessage = chat.despMessage || 'Se fue 😿'
 
   const fkontak = {
     key: {
@@ -25,7 +31,8 @@ export async function before(m, { conn, participants, groupMetadata }) {
     },
     message: {
       contactMessage: {
-        vcard: `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:y\nitem1.TEL;waid=${m.sender.split('@')[0]}:${m.sender.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD`
+        displayName: botName, // Usa el nombre automático
+        vcard: `BEGIN:VCARD\nVERSION:3.0\nN:;${botName};;;\nFN:${botName}\nEND:VCARD`
       }
     },
     participant: "0@s.whatsapp.net"
@@ -39,8 +46,8 @@ export async function before(m, { conn, participants, groupMetadata }) {
     img = await (await fetch(defaultImage)).buffer()
   }
 
+  // --- BIENVENIDA CON TU DISEÑO ORIGINAL ---
   if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_ADD) {
-    const txt = '✦ ゲ◜៹ BIENVENIDA ៹◞ゲ ✦'
     const bienvenida = `
 ╭━━━〔 ${textbot} 〕╮
 ┃ ✦ 𝑯𝒐𝒍𝒂 ${taguser}
@@ -51,24 +58,23 @@ export async function before(m, { conn, participants, groupMetadata }) {
 ╰━━━━━━━━━━━━━⳹
 ⚔ Usa *#profile* para ver tu ficha.`
 
-    await conn.sendMini(m.chat, txt, dev, bienvenida, img, img, redes, fkontak)
+    await conn.sendMini(m.chat, '', '', bienvenida, img, img, global.redes, fkontak)
 
+  // --- DESPEDIDA CON TU DISEÑO ORIGINAL ---
   } else if (
     m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE ||
     m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_LEAVE
   ) {
-    const txt1 = '✦ ゲ◜៹ DESPEDIDA ៹◞ゲ ✦'
     const bye = `
-╭━━━〔 ${textbot} ╮
+╭━━━〔 ${textbot} 〕╮
 ┃ ❖ ${taguser}
 ┃ ✦ *${despMessage}*
 ┃
 ┃ ✦ *Grupo:* ${groupMetadata.subject}
-┃ ✦ *Miembros:* ${totalMembers}
-╰━━━━━━━━━━━━━━━⳹
-🏮 ${global.dev}`
-
-    await conn.sendMini(m.chat, txt1, dev, bye, img, img, redes, fkontak)
+┃ ✦ *Miembros:* ${totalMembers - 1}
+╰━━━━━━━━━━━━━━━⳹`
+    
+    await conn.sendMini(m.chat, '', '', bye, img, img, global.redes, fkontak)
   }
 
   return true
