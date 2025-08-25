@@ -89,7 +89,7 @@ ${taguser} CONTINÚA SU VIAJE 👋
 │ 🗓️ SALIDA: ${getCurrentDate()}
 └──────────────
 
-SUKI TE RECORDARÁ CON CARIÑO 🌸
+MICAELA-MD TE RECORDARÁ CON CARIÑO 🌸
 `
     await conn.sendMessage(m.chat, {
         image: img,
