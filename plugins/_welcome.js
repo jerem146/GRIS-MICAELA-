@@ -11,34 +11,11 @@ export async function before(m, { conn, participants, groupMetadata }) {
   if (!who) return true
 
   const taguser = `@${who.split('@')[0]}`
-  
-  // ---> ESTA VARIABLE YA CONTIENE EL NÚMERO DE MIEMBROS
   const totalMembers = participants.length
-  
   const defaultImage = 'https://files.catbox.moe/xr2m6u.jpg'
-  const botName = 'SukiBot - MDไอ'
-
-  const getCurrentDate = () => {
-    const date = new Date()
-    const day = String(date.getDate()).padStart(2, '0')
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const year = date.getFullYear()
-    return `${day}/${month}/${year}`
-  }
-
-  const fkontak = {
-    key: {
-      fromMe: false,
-      participant: `0@s.whatsapp.net`,
-      ...(m.chat ? { remoteJid: "status@broadcast" } : {})
-    },
-    message: {
-      "contactMessage": {
-        "displayName": "SukiBot-MD",
-        "vcard": `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:y\nitem1.TEL;waid=${who.split('@')[0]}:${who.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD`
-      }
-    }
-  }
+  
+  // --- Objeto de contacto ---
+  const fkontak = { /* ... tu objeto fkontak ... */ }
 
   let img
   try {
@@ -48,55 +25,76 @@ export async function before(m, { conn, participants, groupMetadata }) {
     img = await (await fetch(defaultImage)).buffer()
   }
 
-  // --- MENSAJE DE BIENVENIDA ---
+  // --- LÓGICA DE BIENVENIDA ---
   if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_ADD) {
-    const welcomeMessage = `
+    // 1. Define un mensaje por defecto
+    const defaultWelcome = `
 ${taguser} SE UNE AL VIAJE 🌸
 
 ┌─〔 BIENVENIDA 〕─
-│ 🌿 @${who.split('@')[0]}
-│
-│ 🧁 NOMBRE: +${who.split('@')[0]}
-│ 🗓️ ENTRADA: ${getCurrentDate()}
-│
-│ 🌳 *GRUPO:* ${groupMetadata.subject}
-│ 📊 *MIEMBROS:* ${totalMembers}
+│ 🌿 @user
+│ 🌳 *GRUPO:* @group
+│ 📊 *MIEMBROS:* @count
 └──────────────
 
-¡DISFRUTA TU ESTADÍA! ✨
-`
-    await conn.sendMessage(m.chat, {
-        image: img,
-        caption: welcomeMessage,
-        mentions: [who]
-    }, { quoted: fkontak })
+¡DISFRUTA TU ESTADÍA! ✨`
 
-  // --- MENSAJE DE DESPEDIDA ---
+    // 2. Usa el mensaje personalizado si existe, si no, usa el de por defecto
+    let welcomeTxt = chat.welcomeMessage || defaultWelcome
+
+    // 3. Reemplaza las variables en el mensaje final
+    const finalWelcome = welcomeTxt
+      .replace('@user', taguser)
+      .replace('@group', groupMetadata.subject)
+      .replace('@count', totalMembers)
+
+    await conn.sendMessage(m.chat, {
+      image: img,
+      caption: finalWelcome,
+      mentions: [who]
+    }, { quoted: fkontak })
+  
+  // --- LÓGICA DE DESPEDIDA ---
   } else if (
     m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE ||
     m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_LEAVE
   ) {
-    const farewellMessage = `
+    // 1. Define un mensaje de despedida por defecto
+    const defaultBye = `
 ${taguser} CONTINÚA SU VIAJE 👋
 
 ┌─〔 DESPEDIDA 〕─
-│ 🌿 @${who.split('@')[0]}
-│
-│ 🧁 NOMBRE: +${who.split('@')[0]}
-│ 🗓️ SALIDA: ${getCurrentDate()}
-│
-│ 🌳 *GRUPO:* ${groupMetadata.subject}
-│ 📊 *MIEMBROS:* ${totalMembers - 1}
+│ 🌿 @user
+│ 🌳 *GRUPO:* @group
+│ 📊 *MIEMBROS:* @count
 └──────────────
 
-¡HASTA PRONTO! 🌸
-`
+¡HASTA PRONTO! 🌸`
+
+    // 2. Usa el mensaje personalizado si existe
+    let byeTxt = chat.despMessage || defaultBye
+
+    // 3. Reemplaza las variables (importante: usamos totalMembers - 1)
+    const finalBye = byeTxt
+      .replace('@user', taguser)
+      .replace('@group', groupMetadata.subject)
+      .replace('@count', totalMembers - 1)
+
     await conn.sendMessage(m.chat, {
-        image: img,
-        caption: farewellMessage,
-        mentions: [who]
+      image: img,
+      caption: finalBye,
+      mentions: [who]
     }, { quoted: fkontak })
   }
 
   return true
-}
+}```
+
+### ¿Cómo funciona ahora?
+
+1.  **Un admin usa el comando**: `#setwelcome ¡Hey @user, bienvenido a @group!`.
+2.  **Se guarda el mensaje**: Tu bot guarda ese texto en la base de datos para ese chat en específico.
+3.  **Alguien se une**: El código `before.js` se activa, ve que hay un mensaje personalizado guardado (`chat.welcomeMessage`).
+4.  **Reemplaza las variables**: Toma ese mensaje y reemplaza `@user` por la mención del nuevo miembro, `@group` por el nombre del grupo y `@count` por el número de miembros.
+5.  **Envía el mensaje final**: Envía el mensaje completamente personalizado.
+6.  Si un admin nunca ha usado `#setwelcome`, el bot simplemente usará el mensaje por defecto que definimos dentro del código.
