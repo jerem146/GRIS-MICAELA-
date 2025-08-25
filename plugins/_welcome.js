@@ -15,7 +15,7 @@ export async function before(m, { conn, participants, groupMetadata }) {
   const defaultImage = 'https://files.catbox.moe/xr2m6u.jpg' // Imagen por si el usuario no tiene foto de perfil
 
   // --- ASEGÚRATE DE PONER EL NOMBRE DE TU BOT AQUÍ ---
-  const botName = 'SukiBot - MDไอ' // Nombre del bot que aparecerá en el mensaje
+  const botName = 'GRIS-MICA' // Nombre del bot que aparecerá en el mensaje
 
   // Función para obtener la fecha actual en formato DD/MM/YYYY
   const getCurrentDate = () => {
@@ -34,7 +34,7 @@ export async function before(m, { conn, participants, groupMetadata }) {
     },
     message: {
       "contactMessage": {
-        "displayName": "SukiBot-MD",
+        "displayName": "GRIS-MD",
         "vcard": `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:y\nitem1.TEL;waid=${who.split('@')[0]}:${who.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD`
       }
     }
