@@ -2,6 +2,7 @@ import { sticker } from '../lib/sticker.js'
 import axios from 'axios'
 
 const fetchBrat = async (text) => {
+    // La URL interpreta '%0A' como un salto de línea, encodeURIComponent se encarga de eso.
     const url = `https://placehold.co/512x512/8ACE00/000000.png?text=${encodeURIComponent(text)}&font=arial`
     const response = await axios.get(url, {
         responseType: 'arraybuffer',
@@ -15,13 +16,19 @@ let handler = async (m, { conn, text }) => {
         text = m.quoted.text || m.quoted.caption || text
     }
     if (!text) {
+        // --- MODIFICACIÓN: Se añade un ejemplo de uso con salto de línea. ---
         return conn.sendMessage(m.chat, {
-            text: `❀ Por favor, responde a un mensaje o ingresa un texto para crear el Sticker brat.`,
+            text: `❀ Por favor, responde a un mensaje o ingresa un texto para crear el Sticker.\n\n❀ Usa '|' para agregar un salto de línea.\n\n❀ *Ejemplo:*\n.brat Hola buenas | Cómo estás`,
         }, { quoted: m })
     }
 
     try {
-        const buffer = Buffer.from(await fetchBrat(text))
+        // --- MODIFICACIÓN: Se procesa el texto para reemplazar '|' por saltos de línea (\n). ---
+        const textoProcesado = text.split('|').join('\\n');
+
+        // Se pasa el texto ya procesado para generar la imagen.
+        const buffer = Buffer.from(await fetchBrat(textoProcesado));
+        
         let userId = m.sender
         let packstickers = global.db.data.users[userId] || {}
         let texto1 = packstickers.text1 || global.packsticker
@@ -43,6 +50,7 @@ let handler = async (m, { conn, text }) => {
 
 handler.command = ['brat']
 handler.tags = ['sticker']
-handler.help = ['brat *<texto>*']
+// --- MODIFICACIÓN: Se actualiza el texto de ayuda. ---
+handler.help = ['brat *<texto1> | <texto2>*']
 
 export default handler
